@@ -217,6 +217,111 @@ body {
     50% { transform: scale(1.2); }
 }
 
+/* 엔딩 화면 */
+#ending-screen {
+    background: linear-gradient(135deg, #000, #001100, #000);
+    background-size: 400% 400%;
+    animation: backgroundShift 15s ease infinite;
+}
+
+.ending-container {
+    text-align: center;
+    max-width: 600px;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff00;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+}
+
+#ending-content {
+    margin-bottom: 2rem;
+}
+
+.ending-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 20px currentColor;
+    animation: glitch 3s infinite;
+}
+
+.ending-title.survived {
+    color: #00ff00;
+}
+
+.ending-title.hacked {
+    color: #ff0000;
+}
+
+.ending-title.escaped {
+    color: #ffff00;
+}
+
+.ending-description {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    color: #ccc;
+}
+
+.ending-stats {
+    background: rgba(0, 50, 0, 0.3);
+    border: 1px solid #00ff00;
+    border-radius: 5px;
+    padding: 1rem;
+    margin: 1rem 0;
+    font-family: 'Courier New', monospace;
+}
+
+.ending-stat {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.5rem 0;
+    color: #00ff00;
+}
+
+.ending-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#restart-btn, #share-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#restart-btn {
+    background: #00ff00;
+    color: #000;
+}
+
+#restart-btn:hover {
+    background: #00cc00;
+    transform: scale(1.05);
+    box-shadow: 0 0 20px #00ff00;
+}
+
+#share-btn {
+    background: #333;
+    color: #fff;
+    border: 2px solid #666;
+}
+
+#share-btn:hover {
+    background: #555;
+    border-color: #999;
+    transform: scale(1.05);
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .glitch {

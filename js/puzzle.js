@@ -167,6 +167,11 @@ class PuzzleManager {
         this.isActive = false;
         clearInterval(this.puzzleTimer);
         
+        // 게임 인스턴스에 성공 카운트 추가
+        if (window.game) {
+            window.game.puzzlesSolved++;
+        }
+        
         this.puzzleDisplay.innerHTML = `
             <div style="color: #00ff00; font-size: 1.5rem;">
                 ✅ 보안 코드가 확인되었습니다!
@@ -201,6 +206,11 @@ class PuzzleManager {
     puzzleTimeout() {
         this.isActive = false;
         clearInterval(this.puzzleTimer);
+        
+        // 게임 인스턴스에 실패 카운트 추가
+        if (window.game) {
+            window.game.puzzlesFailed++;
+        }
         
         this.puzzleDisplay.innerHTML = `
             <div style="color: #ff0000; font-size: 1.5rem;">
