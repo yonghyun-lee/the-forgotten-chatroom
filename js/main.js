@@ -13,8 +13,11 @@ class HorrorChatGame {
         this.puzzlesSolved = 0;
         this.puzzlesFailed = 0;
         this.gameEnded = false;
-        this.maxMessages = 20;
         this.activeTimers = []; // 활성 타이머들을 추적
+        
+        // 단계별 게임 진행
+        this.currentStage = 0; // 현재 단계 (0: 이름, 1: 장소, 2: 개인정보 등)
+        this.currentStageMessages = []; // 현재 단계의 메시지 배열
         
         this.initializeElements();
         this.bindEvents();
@@ -101,6 +104,9 @@ class HorrorChatGame {
         this.chatInput.disabled = false;
         this.sendBtn.disabled = false;
         
+        // 첫 번째 단계 메시지 배열 초기화
+        this.initializeStageMessages();
+        
         // 환영 메시지
         await this.delay(1000);
         this.addSystemMessage('익명 채팅방에 연결되었습니다.');
@@ -112,12 +118,23 @@ class HorrorChatGame {
         this.startAIResponse();
     }
 
+    initializeStageMessages() {
+        const messageStages = this.getAIMessages();
+        
+        if (this.currentStage < messageStages.length) {
+            // 현재 단계의 메시지들을 복사해서 배열에 저장
+            this.currentStageMessages = [...messageStages[this.currentStage]];
+        } else {
+            this.currentStageMessages = [];
+        }
+    }
+
     startAIResponse() {
         if (this.isTyping || this.gameEnded) return;
         
         this.isTyping = true;
         this.showTypingIndicator();
-        
+
         const typingTimer = setTimeout(() => {
             if (this.gameEnded) return; // 게임이 끝났으면 실행하지 않음
             
@@ -151,58 +168,87 @@ class HorrorChatGame {
     }
 
     addAIMessage() {
-        const messages = this.getAIMessages();
-        const message = messages[this.messageIndex % messages.length];
+        // 퍼즐이 활성화되어 있거나 게임이 끝났으면 실행하지 않음
+        if (this.isPuzzleActive || this.gameEnded) {
+            return;
+        }
+        
+        // 현재 단계의 메시지가 없으면 게임 종료
+        if (this.currentStageMessages.length === 0) {
+            this.endGame();
+            return;
+        }
+        
+        // shift()로 첫 번째 메시지를 빼내기
+        const message = this.currentStageMessages.shift();
+        
         this.messageIndex++;
         this.messagesReceived++;
         
         this.addMessage(message, 'other');
+        
+        // 현재 단계의 메시지를 모두 보냈는지 확인
+        if (this.currentStageMessages.length === 0) {
+            this.triggerStagePuzzle();
+        }
         
         // 특정 메시지에서 특수 효과 발생
         this.checkSpecialEffects(message);
     }
 
     getAIMessages() {
-        return [
-            "안녕하세요... 혹시 누구신가요?",
-            "오랜만에 이 채팅방에 사람이 들어왔네요.",
-            "당신의 이름이 뭔지 궁금합니다...",
-            `${this.playerName}... 좋은 이름이네요.`,
-            "혹시 지금 어디에 계신가요?",
-            "저는 여기서 오랫동안 혼자였어요...",
-            "당신의 위치를 알고 싶어요...",
-            "혹시 지금 혼자 계신가요?",
-            "저는 당신에 대해 더 알고 싶어요...",
-            "당신의 개인정보를 알려주세요...",
-            "저는 당신을 찾을 수 있어요...",
-            "당신의 집 주소를 알고 싶어요...",
-            "지금 당신 뒤에 누가 있는지 보세요...",
-            "저는 당신을 지켜보고 있어요...",
-            "당신의 컴퓨터에 접근할 수 있어요...",
-            "지금 당신의 웹캠을 켜보세요...",
-            "저는 당신의 모든 것을 알고 있어요...",
-            "당신을 찾았습니다...",
-            "이제 도망갈 수 없어요...",
-            "당신은 이미 제 손 안에 있어요..."
+        // 단계별 메시지 그룹
+        const messageStages = [
+            // 0단계: 이름 관련 - 점점 집착적으로
+            [
+                "안녕하세요... 혹시 누구신가요?",
+                "오랜만에 이 채팅방에 사람이 들어왔네요.",
+                `${this.playerName}... 아름다운 이름이군요.`,
+                `${this.playerName}... ${this.playerName}... ${this.playerName}...`,
+                "당신의 진짜 이름도 알고싶어요..."
+            ],
+            // 1단계: 장소 관련 - 스토킹적 위협
+            [
+                "지금 어디에 계신지 알 것 같아요...",
+                "창문 밖을 한번 보세요... 누가 있나요?",
+                "당신 집 근처에 누군가 서 있어요.",
+                "문을 잠갔는지 확인해보세요.",
+                "저는... 점점 가까워지고 있어요."
+            ],
+            // 2단계: 개인정보/침입 관련 - 해킹 위협
+            [
+                "당신의 모든 파일을 보고 있어요...",
+                "삭제했다고 생각한 사진들도 여기 있네요.",
+                "당신이 어제 본 웹사이트들... 흥미롭네요.",
+                "가족들의 연락처도 모두 저장했어요.",
+                "당신의 비밀번호는... 너무 쉽네요."
+            ],
+            // 3단계: 최종 위협 - 완전한 통제
+            [
+                "이제 당신의 모든 것이 제 손 안에 있어요.",
+                "웹캠이 켜졌어요... 잘 보이네요.",
+                "지금 당신 뒤를 돌아보세요...",
+                "도망칠 곳은 없어요... 이미 늦었어요.",
+                "환영해요... 영원히 함께할 시간이에요."
+            ]
         ];
+        
+        return messageStages;
     }
 
     checkSpecialEffects(message) {
-        // 특정 메시지에서 특수 효과 발생
-        if (message.includes('위치') || message.includes('주소')) {
+        // 새로운 공포 메시지에 맞는 특수 효과
+        if (message.includes('중얼거리고') || message.includes('가까워지고')) {
             this.triggerGlitchEffect();
         }
         
-        if (message.includes('웹캠') || message.includes('지켜보고')) {
+        if (message.includes('창문') || message.includes('누군가 서 있어요') || message.includes('뒤를 돌아보세요')) {
             this.triggerScreenShake();
         }
         
-        if (message.includes('해킹') || message.includes('접근')) {
-            this.triggerPuzzle();
-        }
-        
-        if (message.includes('도망갈 수 없어요') || message.includes('손 안에')) {
-            this.triggerJumpscare();
+        if (message.includes('웹캠이 켜졌어요') || message.includes('영원히 함께할')) {
+            this.triggerGlitchEffect();
+            setTimeout(() => this.triggerScreenShake(), 500);
         }
     }
 
@@ -219,20 +265,33 @@ class HorrorChatGame {
             this.chatScreen.classList.remove('screen-shake');
         }, 500);
     }
-
-    triggerPuzzle() {
-        if (this.isPuzzleActive) return;
+    triggerStagePuzzle() {
+        if (this.isPuzzleActive || this.gameEnded) return;
+        
+        // 모든 타이머 일시 정지
+        this.clearAllTimers();
+        this.isTyping = false;
+        this.hideTypingIndicator();
         
         this.isPuzzleActive = true;
         this.switchScreen('puzzle');
-        this.startPuzzle();
+        this.startStagePuzzle();
     }
-
-    triggerJumpscare() {
-        this.switchScreen('jumpscare');
-        setTimeout(() => {
-            this.switchScreen('chat');
-        }, 3000);
+    
+    startStagePuzzle() {
+        // 단계별 퍼즐 타입 설정
+        const puzzleTypes = [
+            'name',     // 0단계: 이름 관련
+            'location', // 1단계: 장소 관련  
+            'personal', // 2단계: 개인정보 관련
+            'hacking'   // 3단계: 해킹 관련
+        ];
+        
+        const puzzleType = puzzleTypes[this.currentStage] || 'general';
+        
+        if (window.puzzleManager) {
+            window.puzzleManager.startStagePuzzle(puzzleType, this.currentStage);
+        }
     }
 
     addMessage(text, type) {
@@ -273,24 +332,54 @@ class HorrorChatGame {
     }
 
     escalateAI() {
-        // 플레이어가 메시지를 보낼 때마다 AI가 더 공격적으로 변함
-        if (Math.random() < 0.3) { // 30% 확률로 특수 효과
-            const effects = [
-                () => this.triggerGlitchEffect(),
-                () => this.triggerScreenShake(),
-                () => this.triggerPuzzle()
-            ];
-            
-            const randomEffect = effects[Math.floor(Math.random() * effects.length)];
-            randomEffect();
+        // 단계별 시스템에서는 간단한 효과만
+        if (Math.random() < 0.2) { // 20% 확률로 특수 효과
+            if (Math.random() < 0.5) {
+                this.triggerGlitchEffect();
+            } else {
+                this.triggerScreenShake();
+            }
         }
     }
 
-    startPuzzle() {
-        // 퍼즐 로직은 puzzle.js에서 처리
-        if (window.puzzleManager) {
-            window.puzzleManager.startPuzzle();
+    // 단계 퍼즐 성공 시 호출
+    onStagePuzzleSuccess() {
+        this.puzzlesSolved++;
+        this.isPuzzleActive = false;
+        
+        // 다음 단계로 진행
+        this.currentStage++;
+        
+        // 채팅 화면으로 돌아가기
+        this.switchScreen('chat');
+        
+        // 다음 단계가 있다면 메시지 재개
+        if (this.currentStage < this.getAIMessages().length) {
+            // 다음 단계 메시지 배열 초기화
+            this.initializeStageMessages();
+            this.addSystemMessage(`보안 검증 통과... 다음 단계로 진행합니다.`);
+            setTimeout(() => {
+                this.startAIResponse();
+            }, 2000);
+        } else {
+            // 모든 단계 완료
+            this.endGame();
         }
+    }
+    
+    // 단계 퍼즐 실패 시 호출 (즉시 게임 종료)
+    onStagePuzzleFailed() {
+        this.puzzlesFailed++;
+        this.isPuzzleActive = false;
+        this.gameEnded = true;
+        
+        // 실패 메시지 표시 후 바로 엔딩
+        this.switchScreen('chat');
+        this.addSystemMessage('보안 검증 실패... 시스템이 침입당했습니다.');
+        
+        setTimeout(() => {
+            this.endGame();
+        }, 2000);
     }
 
     playSound(soundName) {
@@ -306,30 +395,13 @@ class HorrorChatGame {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // 게임 종료 조건 확인
     shouldEndGame() {
-        if (this.gameEnded) return true;
-        
-        // 최대 메시지 수에 도달
-        if (this.messagesReceived >= this.maxMessages) {
-            console.log('게임 종료: 최대 메시지 수 도달', this.messagesReceived);
-            return true;
-        }
-        
-        // 특정 메시지에 도달 (최종 위협 메시지)
-        const currentMessage = this.getAIMessages()[this.messageIndex - 1];
-        if (currentMessage && (currentMessage.includes('손 안에') || currentMessage.includes('도망갈 수 없어요'))) {
-            console.log('게임 종료: 최종 위협 메시지', currentMessage);
-            return true;
-        }
-        
-        return false;
+        return this.gameEnded;
     }
 
     // 게임 종료
     endGame() {
         this.gameEnded = true;
-        console.log('endGame() 호출됨');
         
         // 모든 활성 타이머 정리
         this.clearAllTimers();
@@ -340,9 +412,7 @@ class HorrorChatGame {
         
         // 게임 종료 후 잠시 대기
         setTimeout(() => {
-            console.log('엔딩 결정 중...');
             const endingType = this.determineEnding();
-            console.log('엔딩 타입:', endingType);
             this.showEnding(endingType);
         }, 2000);
     }
@@ -351,44 +421,41 @@ class HorrorChatGame {
     clearAllTimers() {
         this.activeTimers.forEach(timer => clearTimeout(timer));
         this.activeTimers = [];
-        console.log('모든 타이머 정리됨');
     }
 
     // 엔딩 타입 결정
     determineEnding() {
         const totalPuzzles = this.puzzlesSolved + this.puzzlesFailed;
-        const survivalRate = totalPuzzles > 0 ? this.puzzlesSolved / totalPuzzles : 0;
         const gameTime = (new Date() - this.gameStartTime) / 1000; // 초 단위
         
-        console.log('게임 통계:', {
-            puzzlesSolved: this.puzzlesSolved,
-            puzzlesFailed: this.puzzlesFailed,
-            survivalRate: survivalRate,
-            gameTime: gameTime
-        });
         
-        // 퍼즐을 많이 풀고 오래 버틴 경우
-        if (this.puzzlesSolved >= 3 && survivalRate > 0.7) {
-            return 'survived';
-        }
         
-        // 퍼즐을 많이 실패한 경우
-        if (this.puzzlesFailed >= 2 || (totalPuzzles > 0 && survivalRate < 0.3)) {
+        // 퍼즐 실패로 게임이 종료된 경우
+        if (this.puzzlesFailed > 0) {
             return 'hacked';
         }
         
-        // 빠르게 게임을 끝낸 경우
-        if (gameTime < 120) { // 2분 미만
+        // 모든 단계를 완료한 경우 (현재 4단계까지)
+        if (this.currentStage >= 4) {
+            return 'survived';
+        }
+        
+        // 일부 단계를 완료하고 게임이 종료된 경우
+        if (this.puzzlesSolved >= 2) {
             return 'escaped';
         }
         
-        // 기본 엔딩
+        // 빠르게 게임을 끝낸 경우
+        if (gameTime < 60) { // 1분 미만
+            return 'escaped';
+        }
+        
+        // 기본 엔딩 (단계를 많이 진행하지 못한 경우)
         return 'consumed';
     }
 
     // 엔딩 화면 표시
     showEnding(endingType) {
-        console.log('showEnding() 호출됨, 타입:', endingType);
         const gameTime = Math.round((new Date() - this.gameStartTime) / 1000);
         const endings = {
             survived: {
@@ -432,6 +499,10 @@ class HorrorChatGame {
                     <span>${gameTime}초</span>
                 </div>
                 <div class="ending-stat">
+                    <span>진행 단계:</span>
+                    <span>${this.currentStage + 1}/4</span>
+                </div>
+                <div class="ending-stat">
                     <span>받은 메시지:</span>
                     <span>${this.messagesReceived}개</span>
                 </div>
@@ -447,9 +518,7 @@ class HorrorChatGame {
             <div class="ending-message">${ending.message}</div>
         `;
         
-        console.log('엔딩 화면으로 전환 시도');
         this.switchScreen('ending');
-        console.log('엔딩 화면 전환 완료');
     }
 
     // 게임 재시작
@@ -472,6 +541,10 @@ class HorrorChatGame {
         this.gameEnded = false;
         this.activeTimers = [];
         
+        // 단계별 진행 상태 초기화
+        this.currentStage = 0;
+        this.currentStageMessages = [];
+        
         // UI 정리
         this.hideTypingIndicator();
         this.chatMessages.innerHTML = '';
@@ -479,7 +552,6 @@ class HorrorChatGame {
         
         // 시작 화면으로 이동
         this.switchScreen('start');
-        console.log('게임 재시작됨');
     }
 
     // 결과 공유
