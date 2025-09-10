@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>잊혀진 채팅방</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chatroom.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- 시작 화면 -->
+        <div id="start-screen" class="screen active">
+            <div class="title-container">
+                <h1 class="glitch" data-text="잊혀진 채팅방">잊혀진 채팅방</h1>
+                <p class="subtitle">The Forgotten Chatroom</p>
+                <div class="warning">
+                    ⚠️ 이 게임은 공포 요소를 포함합니다 ⚠️
+                </div>
+            </div>
+            <div class="start-form">
+                <input type="text" id="player-name" placeholder="당신의 이름을 입력하세요..." maxlength="20">
+                <button id="start-btn">채팅 시작</button>
+            </div>
+        </div>
+
+        <!-- 채팅방 화면 -->
+        <div id="chat-screen" class="screen">
+            <div class="chat-header">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span id="status-text">연결 중...</span>
+                </div>
+                <div class="chat-title">익명 채팅방 #0420</div>
+            </div>
+            
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages"></div>
+                <div class="typing-indicator" id="typing-indicator">
+                    <span>익명 사용자가 입력 중...</span>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." disabled>
+                <button id="send-btn" disabled>전송</button>
+            </div>
+        </div>
+
+        <!-- 해킹 퍼즐 화면 -->
+        <div id="puzzle-screen" class="screen">
+            <div class="puzzle-container">
+                <h2>⚠️ 보안 경고 ⚠️</h2>
+                <p>시스템이 침입을 감지했습니다. 보안 코드를 입력하여 연결을 유지하세요.</p>
+                <div class="puzzle-box">
+                    <div id="puzzle-display"></div>
+                    <input type="text" id="puzzle-input" placeholder="코드를 입력하세요...">
+                    <button id="puzzle-submit">확인</button>
+                </div>
+                <div id="puzzle-timer">남은 시간: <span id="timer">30</span>초</div>
+            </div>
+        </div>
+
+        <!-- 점프스케어 화면 -->
+        <div id="jumpscare-screen" class="screen">
+            <div class="jumpscare-content">
+                <div class="jumpscare-text">당신을 찾았습니다...</div>
+                <div class="jumpscare-image">👁️</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 오디오 요소들 -->
+    <!-- <audio id="typing-sound" preload="auto">
+        <source src="assets/sounds/typing.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="notification-sound" preload="auto">
+        <source src="assets/sounds/notification.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="glitch-sound" preload="auto">
+        <source src="assets/sounds/glitch.mp3" type="audio/mpeg">
+    </audio> -->
+
+    <script src="js/main.js"></script>
+    <script src="js/chatroom.js"></script>
+    <script src="js/puzzle.js"></script>
+    <script src="js/effects.js"></script>
+</body>
+</html>
