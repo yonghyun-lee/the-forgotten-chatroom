@@ -517,23 +517,6 @@ class HorrorChatGame {
                 <div class="reveal-text">알았다. ${this.playerName} 이구나?</div>
                 <div class="blood-text">그거 나 주라.</div>
             </div>
-            <div class="ending-horror-symbols">
-                <div class="possession-text">
-                    ${this.playerName}... ${this.playerName}... ${this.playerName}...
-                    <br><br>
-                    이제 너의 모든 것을 알고 있다
-                    <br>
-                    너의 이름, 너의 두려움, 너의 약점...
-                    <br><br>
-                    도망칠 수 없어
-                    <br>
-                    숨을 수 없어
-                    <br>
-                    이미 늦었어
-                    <br><br>
-                    <span class="final-claim">영원히 내 것</span>
-                </div>
-            </div>
         `;
         
         this.switchScreen('ending');
