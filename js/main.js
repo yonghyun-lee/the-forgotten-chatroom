@@ -157,7 +157,7 @@ class HorrorChatGame {
             
             // 다음 AI 응답을 위한 랜덤 지연 (게임이 끝나지 않았을 때만)
             if (!this.gameEnded) {
-                const nextDelay = Math.random() * 5000 + 3000; // 3-8초
+                const nextDelay = Math.random() * 5000 + 1000; // 3-8초
                 const nextTimer = setTimeout(() => this.startAIResponse(), nextDelay);
                 this.activeTimers.push(nextTimer);
             }
