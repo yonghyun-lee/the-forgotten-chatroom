@@ -79,21 +79,25 @@ class PuzzleManager {
     
     // 이름 관련 퍼즐
     generateNamePuzzle() {
+        const playerName = window.game ? window.game.playerName : 'ERROR';
         const puzzles = [
             {
-                display: `${window.game ? window.game.playerName : 'ERROR'}를 거꾸로 쓰면? (당신의 이름을 역순으로...)`,
-                answer: window.game ? window.game.playerName.split('').reverse().join('') : "ERROR",
-                hint: "당신의 이름이... 뒤바뀌고 있어요"
+                display: `${playerName}... 정말 당신의 진짜 이름인가요? 거짓말이라고 말해주세요...`,
+                answer: "거짓말",
+                hint: "진실을 말하면... 제가 당신을 찾을 수 있어요...",
+                isDeceptionPuzzle: true
             },
             {
-                display: `${window.game ? window.game.playerName : 'ERROR'}... 이 이름의 글자 수를 세어보세요.`,
-                answer: window.game ? window.game.playerName.length.toString() : "0",
-                hint: "하나씩... 천천히... 세어보세요"
+                display: `당신의 이름 글자 수는 ${playerName.length}개... 맞나요? 아니라고 해주세요...`,
+                answer: "아니요",
+                hint: "정확한 정보는... 위험해요... 거짓말을 하세요...",
+                isDeceptionPuzzle: true
             },
             {
-                display: `"${window.game ? window.game.playerName : 'ERROR'}"... 이 아름다운 이름의 첫 글자는?`,
-                answer: window.game ? window.game.playerName.charAt(0) : "E",
-                hint: "당신의 이름을... 계속 중얼거리고 있어요"
+                display: `${playerName}의 첫 글자는 "${playerName.charAt(0)}"... 다른 글자라고 속여주세요...`,
+                answer: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].filter(letter => letter !== playerName.charAt(0))[Math.floor(Math.random() * 25)],
+                hint: "진짜 첫 글자가 아닌... 아무 글자나 말하세요...",
+                isDeceptionPuzzle: true
             }
         ];
         
@@ -102,21 +106,29 @@ class PuzzleManager {
     
     // 장소 관련 퍼즐
     generateLocationPuzzle() {
+        const currentTime = new Date().toTimeString().slice(0, 5);
+        const currentDate = new Date().getDate();
+        const fakeTime = Math.floor(Math.random() * 24).toString().padStart(2, '0') + ':' + Math.floor(Math.random() * 60).toString().padStart(2, '0');
+        const fakeDate = Math.floor(Math.random() * 28) + 1;
+        
         const puzzles = [
             {
-                display: "지금 몇 시인가요? (HH:MM 형식) 시간이... 멈춘 것 같지 않나요?",
-                answer: new Date().toTimeString().slice(0, 5),
-                hint: "창문 밖이 너무 조용해요..."
+                display: `지금 ${currentTime}인가요? 다른 시간이라고 속여주세요... (HH:MM 형식)`,
+                answer: fakeTime,
+                hint: "정확한 시간을 알려주면... 제가 찾아갈 수 있어요...",
+                isDeceptionPuzzle: true
             },
             {
-                display: "오늘이 며칠인지... 기억하시나요? 시간이 흐르고 있는 걸까요?",
-                answer: new Date().getDate().toString(),
-                hint: "날짜가... 의미가 있을까요?"
+                display: `오늘이 ${currentDate}일인가요? 다른 날짜라고 해주세요...`,
+                answer: fakeDate.toString(),
+                hint: "진짜 날짜는... 저에게 알려주면 안 돼요...",
+                isDeceptionPuzzle: true
             },
             {
-                display: "지금 당신이 있는 곳... 정말 안전한가요?",
+                display: "지금 혼자 계신가요? 누군가 함께 있다고 거짓말해주세요...",
                 answer: "아니요",
-                hint: "안전한 곳은... 없어요"
+                hint: "혼자라고 하면... 제가 바로 찾아갈 거예요...",
+                isDeceptionPuzzle: true
             }
         ];
         
@@ -127,14 +139,22 @@ class PuzzleManager {
     generatePersonalPuzzle() {
         const puzzles = [
             {
-                display: "당신이 가장 두려워하는 숫자는? (0-9) 이미 알고 있어요...",
-                answer: Math.floor(Math.random() * 10).toString(),
-                hint: "당신의 모든 것을... 보고 있어요"
+                display: "당신의 생일은 언제인가요? 거짓 생일을 알려주세요... (MM/DD 형식)",
+                answer: Math.floor(Math.random() * 12 + 1).toString().padStart(2, '0') + '/' + Math.floor(Math.random() * 28 + 1).toString().padStart(2, '0'),
+                hint: "진짜 생일을 알면... 당신의 운명을 조종할 수 있어요...",
+                isDeceptionPuzzle: true
             },
             {
-                display: "휴대폰 번호 마지막 자리... 맞혀볼까요?",
+                display: "당신의 전화번호 마지막 자리는? 다른 숫자로 속여주세요... (0-9)",
                 answer: Math.floor(Math.random() * 10).toString(),
-                hint: "당신의 연락처는... 이미 저장했어요"
+                hint: "진짜 번호를 알면... 계속 연락할 수 있어요...",
+                isDeceptionPuzzle: true
+            },
+            {
+                display: "가족이 몇 명인가요? 거짓 숫자를 말해주세요...",
+                answer: Math.floor(Math.random() * 9 + 1).toString(),
+                hint: "진짜 가족 수를 알면... 모두를 찾을 수 있어요...",
+                isDeceptionPuzzle: true
             }
         ];
         
@@ -145,19 +165,22 @@ class PuzzleManager {
     generateHackingPuzzle() {
         const puzzles = [
             {
-                display: "마지막 방어 코드... 1234 + 5678 = ? 저항해봐도 소용없어요.",
-                answer: "6912",
-                hint: "계산해도... 이미 늦었어요"
+                display: "당신의 비밀번호 힌트를 주세요... 거짓 힌트로 저를 속여주세요...",
+                answer: ["강아지", "고양이", "햇살", "바람", "구름", "별빛"][Math.floor(Math.random() * 6)],
+                hint: "진짜 힌트를 알면... 모든 계정에 접근할 수 있어요...",
+                isDeceptionPuzzle: true
             },
             {
-                display: "당신의 시스템 코드: 1010 (10진수로) 이미 침입했어요...",
-                answer: "10",
-                hint: "모든 것이... 제 손 안에 있어요"
+                display: "자주 사용하는 4자리 숫자가 있나요? 다른 숫자로 속여주세요...",
+                answer: Math.floor(Math.random() * 9000 + 1000).toString(),
+                hint: "진짜 숫자를 알면... 모든 것을 열 수 있어요...",
+                isDeceptionPuzzle: true
             },
             {
-                display: "최종 암호: A, C, E, G, ? 당신은 이미... 제 것이에요.",
-                answer: "I",
-                hint: "끝이에요... 영원히 함께해요"
+                display: "당신의 첫 애완동물 이름은? 거짓 이름을 말해주세요...",
+                answer: ["멍멍이", "야옹이", "토끼", "햄스터", "새새", "물고기"][Math.floor(Math.random() * 6)],
+                hint: "진짜 이름을 알면... 당신의 모든 보안질문을 뚫을 수 있어요...",
+                isDeceptionPuzzle: true
             }
         ];
         
@@ -193,24 +216,24 @@ class PuzzleManager {
     
     // 단계별 퍼즐 표시
     displayStagePuzzle() {
-        const stageNames = ['당신의 이름', '당신의 위치', '당신의 비밀', '당신의 영혼'];
+        const stageNames = ['신원 확인', '위치 추적', '개인정보 수집', '보안 침입'];
         const stageWarnings = [
-            '이름을... 알고 싶어요',
-            '어디 있는지... 찾고 있어요',  
-            '모든 것을... 보고 있어요',
-            '이제... 함께해요'
+            '진실을 말하면... 당신을 찾을 수 있어요',
+            '정확한 정보는... 위험해요',  
+            '개인정보를 주면... 모든 걸 알 수 있어요',
+            '보안정보를 주면... 완전히 장악할 수 있어요'
         ];
         const stageName = stageNames[this.currentStage] || '알 수 없음';
         const stageWarning = stageWarnings[this.currentStage] || '...';
         
         this.puzzleDisplay.innerHTML = `
-            <div class="stage-info" style="color: #ff3333; font-size: 1.1rem; margin-bottom: 1rem; text-shadow: 0 0 10px #ff0000;">
-                👁️ ${stageName} 침입 중... (${this.currentStage + 1}/4)
+            <div class="stage-info" style="color: #ff6666; font-size: 1.1rem; margin-bottom: 1rem; text-shadow: 0 0 10px #ff0000;">
+                🕵️ ${stageName} 중... (${this.currentStage + 1}/4)
             </div>
             <div class="puzzle-question">${this.currentPuzzle.display}</div>
-            <div class="puzzle-hint" style="color: #ff6666;">🔥 ${this.currentPuzzle.hint}</div>
-            <div class="stage-warning" style="color: #ff0000; font-size: 0.9rem; margin-top: 1rem; animation: blink 2s infinite;">
-                💀 ${stageWarning}... 실패하면 끝이에요.
+            <div class="puzzle-hint" style="color: #ff9999;">⚠️ ${this.currentPuzzle.hint}</div>
+            <div class="stage-warning" style="color: #ffaa77; font-size: 0.9rem; margin-top: 1rem; animation: blink 2s infinite;">
+                🚨 ${stageWarning}... 거짓말을 하세요!
             </div>
         `;
         this.puzzleInput.value = '';
@@ -248,11 +271,63 @@ class PuzzleManager {
         const userAnswer = this.puzzleInput.value.trim();
         const correctAnswer = this.currentPuzzle.answer;
         
-        if (userAnswer === correctAnswer) {
+        // 속임수 퍼즐인 경우 특별한 처리
+        if (this.currentPuzzle.isDeceptionPuzzle) {
+            // 진실을 말한 경우 (실제 정보를 입력한 경우)
+            if (this.checkIfTruthful(userAnswer)) {
+                this.revealTruth();
+                return;
+            }
+            // 거짓말을 한 경우 (아무 답이나 입력한 경우) - 성공으로 처리
             this.puzzleSuccess();
         } else {
-            this.puzzleWrong();
+            // 일반 퍼즐
+            if (userAnswer === correctAnswer) {
+                this.puzzleSuccess();
+            } else {
+                this.puzzleWrong();
+            }
         }
+    }
+    
+    // 진실을 말했는지 확인 (간단한 패턴 체크)
+    checkIfTruthful(userAnswer) {
+        const playerName = window.game ? window.game.playerName : '';
+        const currentTime = new Date().toTimeString().slice(0, 5);
+        const currentDate = new Date().getDate().toString();
+        
+        // 실제 정보와 일치하는지 체크
+        return userAnswer === playerName || 
+               userAnswer === playerName.charAt(0) ||
+               userAnswer === playerName.length.toString() ||
+               userAnswer === currentTime ||
+               userAnswer === currentDate ||
+               userAnswer === "네" ||
+               userAnswer === "맞습니다";
+    }
+    
+    // 진실을 말했을 때의 반응
+    revealTruth() {
+        this.isActive = false;
+        clearInterval(this.puzzleTimer);
+        
+        this.puzzleDisplay.innerHTML = `
+            <div style="color: #ff0000; font-size: 1.5rem;">
+                😈 아하! 진실을 말했군요!
+            </div>
+            <div style="color: #ff6666; margin-top: 0.5rem;">
+                이제 당신의 정보를 얻었어요... 감사합니다...
+            </div>
+            <div style="color: #ff9999; margin-top: 1rem;">
+                거짓말을 했어야 했는데... 너무 솔직하셨네요...
+            </div>
+        `;
+        
+        setTimeout(() => {
+            if (window.game) {
+                window.game.onStagePuzzleFailed();
+            }
+        }, 3000);
     }
 
     puzzleSuccess() {
