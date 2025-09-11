@@ -518,34 +518,33 @@ class HorrorChatGame {
                 <div class="blood-text">그거 나 주라.</div>
             </div>
             <div class="ending-horror-symbols">
-                ████████████████████████████████
-                <br>
-                ████████████████████████████████
-                <br>
-                ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-                <br>
-                ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
-                <br>
-                ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                <div class="possession-text">
+                    ${this.playerName}... ${this.playerName}... ${this.playerName}...
+                    <br><br>
+                    이제 너의 모든 것을 알고 있다
+                    <br>
+                    너의 이름, 너의 두려움, 너의 약점...
+                    <br><br>
+                    도망칠 수 없어
+                    <br>
+                    숨을 수 없어
+                    <br>
+                    이미 늦었어
+                    <br><br>
+                    <span class="final-claim">영원히 내 것</span>
+                </div>
             </div>
         `;
         
         this.switchScreen('ending');
         
-        // 더 강렬한 화면 효과
-        this.triggerGlitchEffect();
-        setTimeout(() => {
-            this.triggerScreenShake();
-        }, 400);
+        // 부드러운 화면 효과 (ASCII 아트가 보이도록)
         setTimeout(() => {
             this.triggerGlitchEffect();
-        }, 800);
+        }, 2000);
         setTimeout(() => {
             this.triggerScreenShake();
-        }, 1200);
-        setTimeout(() => {
-            this.triggerGlitchEffect();
-        }, 1600);
+        }, 4000);
     }
 
     // 0단계에서 이름을 말했을 때의 즉시 엔딩 처리
@@ -567,7 +566,7 @@ class HorrorChatGame {
                 this.triggerScreenShake();
                 
                 setTimeout(() => {
-                    this.addMessage('완벽해...', 'other');
+                    this.addMessage('이쁘다', 'other');
                     
                     setTimeout(() => {
                         this.showNameRevealedEnding();
@@ -582,49 +581,38 @@ class HorrorChatGame {
         this.endingContent.innerHTML = `
             <div class="ending-ascii-art">
                 <pre class="scary-face">
-    ░░░░░░░▄▄▄▄▄▄▄░░░░░░░
-    ░░░░▄█████████████▄░░░
-    ░░▄███████████████████▄
-    ░████████████████████████
-    ███████▀▀▀░░░▀▀▀███████
-    ██████▀░░███░░███░▀██████
-    ██████░░█████░█████░██████
-    ██████░░░███░░███░░░██████
-    ███████▄▄▄░░░▄▄▄███████
-    ░████████████████████████
-    ░░▀███████████████████▀
-    ░░░░▀█████████████▀░░░
-    ░░░░░░░▀▀▀▀▀▀▀░░░░░░░
+    ░░░░░░░░░░░░░░░░░░░░░░░░░░
+    ░░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░
+    ░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░
+    ░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░
+    ▓▓▓▓▓██▓▓▓▓▓▓▓▓██▓▓▓▓▓▓
+    ▓▓▓▓██████▓▓▓██████▓▓▓▓
+    ▓▓▓▓██████▓▓▓██████▓▓▓▓
+    ▓▓▓▓▓██▓▓▓▓▓▓▓██▓▓▓▓▓▓▓
+    ▓▓▓▓▓▓▓▓▓▓███▓▓▓▓▓▓▓▓▓▓
+    ▓▓▓▓▓▓▓███████▓▓▓▓▓▓▓▓▓
+    ▓▓▓▓▓▓█████████▓▓▓▓▓▓▓▓
+    ░▓▓▓▓▓▓███████▓▓▓▓▓▓▓▓░
+    ░░▓▓▓▓▓▓▓███▓▓▓▓▓▓▓▓░░
+    ░░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░
+    ░░░░░▓▓▓▓▓▓▓▓▓▓▓▓░░░░░
                 </pre>
             </div>
             <div class="ending-title hacked glitch-text">${this.playerName}</div>
             <div class="ending-horror-message">
                 <div class="blood-text">그거 나줘</div>
             </div>
-            <div class="ending-horror-symbols">
-                ██████████████████████████
-                <br>
-                ██████████████████████████
-                <br>
-                ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-                <br>
-                ░░░░░░░░░░░░░░░░░░░░░░░░░░
-            </div>
         `;
         
         this.switchScreen('ending');
         
-        // 강렬한 화면 효과
-        this.triggerGlitchEffect();
-        setTimeout(() => {
-            this.triggerScreenShake();
-        }, 300);
+        // 부드러운 화면 효과 (ASCII 아트가 보이도록)
         setTimeout(() => {
             this.triggerGlitchEffect();
-        }, 600);
+        }, 1000);
         setTimeout(() => {
             this.triggerScreenShake();
-        }, 900);
+        }, 3000);
     }
 
     // 도배 중에 "그만해"라고 했을 때의 처리
