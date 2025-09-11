@@ -115,10 +115,10 @@ class HorrorChatGame {
         this.initializeStageMessages();
         
         // 환영 메시지
-        await this.delay(1000);
+        await this.delay(500);
         this.addSystemMessage('익명 채팅방에 연결되었습니다.');
         
-        await this.delay(2000);
+        await this.delay(1000);
         this.addSystemMessage('익명 사용자가 입장했습니다.');
         
         await this.delay(3000);
@@ -137,7 +137,12 @@ class HorrorChatGame {
     }
 
     startAIResponse() {
-        if (this.isTyping || this.gameEnded) return;
+        if (this.isTyping || this.gameEnded) {
+            console.log('AI 응답 중단:', { isTyping: this.isTyping, gameEnded: this.gameEnded });
+            return;
+        }
+        
+        console.log('AI 응답 시작:', { currentStage: this.currentStage, stage0State: this.stage0State });
         
         this.isTyping = true;
         this.showTypingIndicator();
@@ -157,7 +162,7 @@ class HorrorChatGame {
             
             // 다음 AI 응답을 위한 랜덤 지연 (게임이 끝나지 않았을 때만)
             if (!this.gameEnded) {
-                const nextDelay = Math.random() * 5000 + 1000; // 3-8초
+                const nextDelay = Math.random() * 3000 + 1000; // 3-8초
                 const nextTimer = setTimeout(() => this.startAIResponse(), nextDelay);
                 this.activeTimers.push(nextTimer);
             }
@@ -205,9 +210,15 @@ class HorrorChatGame {
         
         this.addMessage(message, 'other');
         
-        // 0단계가 아닌 경우에만 퍼즐 트리거
+        // 0단계가 아닌 경우 특별 처리
         if (this.currentStage !== 0 && this.currentStageMessages.length === 0) {
-            this.triggerStagePuzzle();
+            if (this.currentStage === 1) {
+                // 1단계는 사진 함정 트리거
+                this.triggerPhotoTrap();
+            } else {
+                // 다른 단계는 일반 퍼즐
+                this.triggerStagePuzzle();
+            }
         }
         
         // 특정 메시지에서 특수 효과 발생
@@ -227,13 +238,11 @@ class HorrorChatGame {
                 "알려줘",
                 "알려줘",
             ],
-            // 1단계: 위치 - 위치 정보 수집
+            // 1단계: 사진 함정 - 체념한 척하다가 사진으로 함정
             [
-                "지금 어디에 계신가요? 위치가 궁금해요...",
-                "혹시 집에 계신가요? 아니면 다른 곳인가요?",
-                "정확한 시간과 날짜를 알려주세요...",
-                "혼자 계신가요? 주변에 누가 있는지 궁금해요...",
-                "당신의 위치 정보가... 정말 필요해요..."
+                "아... 알겠어요.",
+                "그럼 저는 안궁금하세요?",
+                "제 사진 보여드릴까요?",
             ],
             // 2단계: 개인정보 - 민감한 정보 요구
             [
@@ -416,69 +425,59 @@ class HorrorChatGame {
 
     // "알려줘" 도배 시작
     startNameSpamming() {
-        if (this.gameEnded || this.stage0State !== 'spamming') return;
+        if (this.gameEnded || this.stage0State !== 'spamming') {
+            console.log('스팸 시작 중단:', { gameEnded: this.gameEnded, stage0State: this.stage0State });
+            return;
+        }
+        
+        console.log('스팸 시작:', { stage0State: this.stage0State });
         
         const spamMessages = [
-            "알려줘",
-            "알려줘 알려줘",
-            "알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘",
-            "알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘 알려줘"
+            "알려줘".repeat(50), // 50개
+            "알려줘".repeat(100), // 100개  
+            "알려줘".repeat(200)  // 200개
         ];
         
-        // 3초 타이머 시작 (사용자가 "그만해"를 다시 입력할 기회)
+        // 5초 타이머 시작 (사용자가 "그만해"를 입력할 기회)
+        console.log('5초 타이머 시작 - showPossessiveEnding 예약');
         this.spamTimer = setTimeout(() => {
+            console.log('5초 경과 - showPossessiveEnding 실행');
             this.showPossessiveEnding();
         }, 5000);
         
         // 도배 메시지를 빠르게 연속으로 보냄
         const sendSpamMessage = () => {
-            if (this.gameEnded || this.stage0State !== 'spamming' || this.spamCount >= spamMessages.length) {
+            if (this.gameEnded || this.stage0State !== 'spamming') {
+                console.log('스팸 중단:', { gameEnded: this.gameEnded, stage0State: this.stage0State });
                 return;
             }
             
-            const message = spamMessages[this.spamCount];
+            // 3개 메시지를 순환하도록 인덱스 계산
+            const messageIndex = this.spamCount % spamMessages.length;
+            const message = spamMessages[messageIndex];
             this.addMessage(message, 'other');
+            
+            console.log('스팸 메시지 전송:', { spamCount: this.spamCount, messageIndex, messageLength: message.length });
             
             // "알려줘" 메시지마다 글리치 효과 트리거
             this.checkSpecialEffects(message);
             
-            // 도배가 진행될수록 더 강렬한 효과
-            if (this.spamCount > 10 && Math.random() < 0.3) {
+            // 두 번째, 세 번째 메시지에서 더 강렬한 효과
+            if (messageIndex >= 1 && Math.random() < 0.5) {
                 setTimeout(() => this.triggerScreenShake(), 100);
             }
             
             this.spamCount++;
             
-            // 점점 빨라지는 간격으로 메시지 전송
-            const delay = Math.max(50, 300 - (this.spamCount * 10));
+            // 메시지 타입에 따른 간격 (점점 빨라짐)
+            let delay;
+            if (messageIndex === 0) {
+                delay = 2000; // 첫 번째 타입 후 2초
+            } else if (messageIndex === 1) {
+                delay = 1500; // 두 번째 타입 후 1.5초  
+            } else {
+                delay = 1000; // 세 번째 타입 후 1초
+            }
             
             setTimeout(sendSpamMessage, delay);
         };
@@ -600,6 +599,8 @@ class HorrorChatGame {
 
     // 도배 중에 "그만해"라고 했을 때의 처리
     handleStage0StopDuringSpam() {
+        console.log('0단계 스팸 중단 처리 시작');
+        
         // 스팸 타이머 정리
         if (this.spamTimer) {
             clearTimeout(this.spamTimer);
@@ -607,16 +608,223 @@ class HorrorChatGame {
         }
         
         this.clearAllTimers();
+        
+        // 타이핑 상태 초기화 (중요!)
+        this.isTyping = false;
+        this.hideTypingIndicator();
+        
         this.stage0State = 'completed';
         
         // 잠시 대기 후 다음 단계로 진행
         setTimeout(() => {
-            this.addSystemMessage('...좋아. 이제 다음 단계로 넘어가자.');
             this.currentStage = 1;
+            this.initializeStageMessages();
+            
+            // AI 응답 재시작을 더 확실하게
+            setTimeout(() => {
+                console.log('1단계 AI 응답 시작 - isTyping 상태:', this.isTyping);
+                if (!this.gameEnded && this.currentStage === 1 && !this.isTyping) {
+                    this.startAIResponse();
+                } else {
+                    console.log('1단계 AI 응답 실패:', { 
+                        gameEnded: this.gameEnded, 
+                        currentStage: this.currentStage, 
+                        isTyping: this.isTyping 
+                    });
+                }
+            }, 1500);
+        }, 1000);
+    }
+
+    // 1단계 사진 함정 트리거
+    triggerPhotoTrap() {
+        if (this.isPuzzleActive || this.gameEnded) return;
+        
+        // 모든 타이머 일시 정지
+        this.clearAllTimers();
+        this.isTyping = false;
+        this.hideTypingIndicator();
+        
+        // 잠시 후 사진 메시지 추가
+        setTimeout(() => {
+            this.addPhotoMessage();
+        }, 2000);
+    }
+
+    // 사진 메시지 추가
+    addPhotoMessage() {
+        const photoDiv = document.createElement('div');
+        photoDiv.className = 'message other';
+        photoDiv.innerHTML = `
+            <div class="photo-container">
+                <div class="fake-photo" id="trap-photo">
+                    <div class="photo-placeholder">
+                        📷 사진을 보려면 클릭하세요
+                    </div>
+                </div>
+            </div>
+            <div class="message-time">${new Date().toLocaleTimeString()}</div>
+        `;
+        
+        this.chatMessages.appendChild(photoDiv);
+        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        
+        // 사진 클릭 이벤트 추가 (함정)
+        document.getElementById('trap-photo').addEventListener('click', () => {
+            this.activatePhotoTrap();
+        });
+        
+        // 10초 후 클릭하지 않으면 통과 (현명한 선택)
+        this.photoWaitTimer = setTimeout(() => {
+            this.photoTrapAvoided();
+        }, 10000);
+    }
+
+    // 사진 함정을 피한 경우 (클릭하지 않음)
+    photoTrapAvoided() {
+        this.isPuzzleActive = false;
+        
+        // 다음 단계로 진행
+        setTimeout(() => {
+            this.addSystemMessage('현명한 선택이군요... 다음 단계로 넘어갑니다.');
+            this.currentStage = 2;
             this.initializeStageMessages();
             
             setTimeout(() => {
                 this.startAIResponse();
+            }, 2000);
+        }, 1000);
+    }
+
+    // 사진 함정 활성화
+    activatePhotoTrap() {
+        // 대기 타이머 정리
+        if (this.photoWaitTimer) {
+            clearTimeout(this.photoWaitTimer);
+            this.photoWaitTimer = null;
+        }
+        
+        this.isPuzzleActive = true;
+        
+        // 귀신 사진 오버레이 생성
+        const ghostOverlay = document.createElement('div');
+        ghostOverlay.id = 'ghost-photo-overlay';
+        ghostOverlay.className = 'ghost-overlay';
+        // 랜덤 위치 생성 함수
+        const getRandomPosition = () => ({
+            top: Math.random() * 80 + 10, // 10% ~ 90%
+            left: Math.random() * 80 + 10 // 10% ~ 90%
+        });
+
+        // 8개의 랜덤 위치 생성
+        const positions = Array.from({length: 8}, () => getRandomPosition());
+
+        ghostOverlay.innerHTML = `
+            <div class="ghost-background">
+                <img src="assets/ghost.png" class="ghost-bg-image" alt="Ghost">
+                <div class="ghost-text-overlay">
+                    ${positions.map((pos, index) => 
+                        `<div class="ghost-text-simple delay-${index + 1}" style="top: ${pos.top}%; left: ${pos.left}%;">이름 알려줘!</div>`
+                    ).join('')}
+                </div>
+                <div class="close-hint">해킹 당하기 전에 빨리 닫기를 찾아 사진을 끄세요!</div>
+                <div class="close-button-hidden" id="close-ghost">❌</div>
+            </div>
+        `;
+        
+        document.body.appendChild(ghostOverlay);
+        
+        // 효과 추가
+        this.triggerGlitchEffect();
+        this.triggerScreenShake();
+        
+        // 5초 타이머 시작
+        this.photoTrapTimer = setTimeout(() => {
+            this.photoTrapFailed();
+        }, 5000);
+        
+        // 닫기 버튼 이벤트 (5번 클릭해야 닫힘)
+        let closeClickCount = 0;
+        const closeButton = document.getElementById('close-ghost');
+        
+        closeButton.addEventListener('click', () => {
+            closeClickCount++;
+            
+            // 화면 흔들기 효과
+            document.body.classList.add('photo-shake');
+            setTimeout(() => {
+                document.body.classList.remove('photo-shake');
+            }, 300);
+            
+            // 사진에 크랙과 기울기 효과 추가
+            const ghostImage = document.querySelector('.ghost-bg-image');
+            if (ghostImage) {
+                ghostImage.classList.add(`crack-effect-${closeClickCount}`);
+                
+                // 기울기 효과 (점점 더 기울어짐)
+                const rotation = closeClickCount * 2; // 2도씩 증가
+                ghostImage.style.transform = `rotate(${rotation}deg)`;
+            }
+            
+            // 5번 클릭하면 닫기
+            if (closeClickCount >= 5) {
+                this.photoTrapSuccess();
+            }
+            
+            // 버튼 클릭 효과
+            closeButton.style.transform = 'scale(1.2)';
+            closeButton.style.opacity = '1';
+            setTimeout(() => {
+                closeButton.style.transform = 'scale(1)';
+                if (closeClickCount < 5) {
+                    closeButton.style.opacity = '0.3';
+                }
+            }, 100);
+        });
+    }
+
+    // 사진 함정 성공 (빨리 닫음)
+    photoTrapSuccess() {
+        if (this.photoTrapTimer) {
+            clearTimeout(this.photoTrapTimer);
+            this.photoTrapTimer = null;
+        }
+        
+        // 오버레이 제거
+        const overlay = document.getElementById('ghost-photo-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+        
+        this.isPuzzleActive = false;
+        this.puzzlesSolved++; // 퍼즐 해결 카운트 증가
+        
+        // 게임 성공으로 끝내기
+        setTimeout(() => {
+            this.addSystemMessage('휴... 빨리 끄셨네요. 위험에서 벗어났습니다.');
+            
+            setTimeout(() => {
+                this.endGame(); // 게임 성공으로 종료
+            }, 2000);
+        }, 1000);
+    }
+
+    // 사진 함정 실패 (5초 경과)
+    photoTrapFailed() {
+        this.gameEnded = true;
+        this.isPuzzleActive = false;
+        
+        // 오버레이 제거
+        const overlay = document.getElementById('ghost-photo-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+        
+        // 실패 메시지 후 엔딩
+        setTimeout(() => {
+            this.addSystemMessage('너무 늦었어요... 이제 당신의 모든 정보가 해킹당했습니다.');
+            setTimeout(() => {
+                this.endGame();
             }, 2000);
         }, 1000);
     }
@@ -698,8 +906,25 @@ class HorrorChatGame {
 
     // 모든 타이머 정리
     clearAllTimers() {
-        this.activeTimers.forEach(timer => clearTimeout(timer));
+        console.log('타이머 정리:', this.activeTimers.length);
+        this.activeTimers.forEach(timer => {
+            if (timer) clearTimeout(timer);
+        });
         this.activeTimers = [];
+        
+        // 추가적인 타이머들도 정리
+        if (this.spamTimer) {
+            clearTimeout(this.spamTimer);
+            this.spamTimer = null;
+        }
+        if (this.photoTrapTimer) {
+            clearTimeout(this.photoTrapTimer);
+            this.photoTrapTimer = null;
+        }
+        if (this.photoWaitTimer) {
+            clearTimeout(this.photoWaitTimer);
+            this.photoWaitTimer = null;
+        }
     }
 
     // 엔딩 타입 결정
@@ -719,8 +944,8 @@ class HorrorChatGame {
             return 'survived';
         }
         
-        // 일부 단계를 완료하고 게임이 종료된 경우
-        if (this.puzzlesSolved >= 2) {
+        // 일부 단계를 완료하고 게임이 종료된 경우 (사진 함정 성공 포함)
+        if (this.puzzlesSolved >= 1) {
             return 'escaped';
         }
         
@@ -833,6 +1058,16 @@ class HorrorChatGame {
         this.userSaidStop = false;
         this.spamStartTime = null;
         this.spamCount = 0;
+        
+        // 1단계 사진 함정 변수들 초기화
+        if (this.photoTrapTimer) {
+            clearTimeout(this.photoTrapTimer);
+            this.photoTrapTimer = null;
+        }
+        if (this.photoWaitTimer) {
+            clearTimeout(this.photoWaitTimer);
+            this.photoWaitTimer = null;
+        }
         
         // UI 정리
         this.hideTypingIndicator();

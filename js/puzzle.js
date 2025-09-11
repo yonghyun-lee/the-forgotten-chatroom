@@ -58,9 +58,6 @@ class PuzzleManager {
     // 단계별 퍼즐 생성
     generateStagePuzzle() {
         switch(this.puzzleType) {
-            case 'name':
-                this.currentPuzzle = this.generateNamePuzzle();
-                break;
             case 'location':
                 this.currentPuzzle = this.generateLocationPuzzle();
                 break;
@@ -75,33 +72,6 @@ class PuzzleManager {
         }
         
         this.displayStagePuzzle();
-    }
-    
-    // 이름 관련 퍼즐
-    generateNamePuzzle() {
-        const playerName = window.game ? window.game.playerName : 'ERROR';
-        const puzzles = [
-            {
-                display: `${playerName}... 정말 당신의 진짜 이름인가요? 거짓말이라고 말해주세요...`,
-                answer: "거짓말",
-                hint: "진실을 말하면... 제가 당신을 찾을 수 있어요...",
-                isDeceptionPuzzle: true
-            },
-            {
-                display: `당신의 이름 글자 수는 ${playerName.length}개... 맞나요? 아니라고 해주세요...`,
-                answer: "아니요",
-                hint: "정확한 정보는... 위험해요... 거짓말을 하세요...",
-                isDeceptionPuzzle: true
-            },
-            {
-                display: `${playerName}의 첫 글자는 "${playerName.charAt(0)}"... 다른 글자라고 속여주세요...`,
-                answer: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"].filter(letter => letter !== playerName.charAt(0))[Math.floor(Math.random() * 25)],
-                hint: "진짜 첫 글자가 아닌... 아무 글자나 말하세요...",
-                isDeceptionPuzzle: true
-            }
-        ];
-        
-        return puzzles[Math.floor(Math.random() * puzzles.length)];
     }
     
     // 장소 관련 퍼즐
