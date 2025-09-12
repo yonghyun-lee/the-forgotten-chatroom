@@ -11,10 +11,35 @@ class ForgottenChatroom {
         // 게임 상태
         this.gameState = {
             tutorialComplete: false,
-            questionsAsked: [],
+            questionsAsked: [], // 질문한 횟수 추적 {type: 'name', count: 2}
             evidenceFound: [],
             seoyeonTrust: 50, // 0-100
-            mysteryLevel: 0 // 0: 모름, 1: 의심, 2: 확신, 3: 진실
+            mysteryLevel: 0, // 0: 모름, 1: 의심, 2: 확신, 3: 진실
+            nameRevealed: false // 서연이 자신의 이름을 밝혔는지
+        };
+
+        // 질문별 응답 데이터
+        this.questionResponses = {
+            'name': {
+                responses: [
+                    '이름... 이름이 뭐였지... 기억이 안 나',
+                    '왜 자꾸 그런 걸 묻는 거야? 그 사람처럼...',
+                    '말하고 싶지 않아. 절대로.'
+                ],
+                specialResponse: {
+                    trigger: 3, // 3번째 질문 후
+                    messages: [
+                        '그 사람도... 처음엔 친절했어...',
+                        '이름을 물어보고... 집까지 찾아왔어...',
+                        '더 이상... 말하고 싶지 않아'
+                    ]
+                },
+                evidence: {
+                    id: 'name_trauma',
+                    description: '익명 사용자는 이름과 관련된 트라우마가 있다'
+                },
+                keywords: ['이름']
+            }
         };
 
         this.init();
@@ -256,10 +281,9 @@ class ForgottenChatroom {
         
         // 서연의 첫 메시지들 (이름을 모르는 상태)
         const introMessages = [
-            { text: '안녕...', delay: 2000 },
-            { text: '혼자야?', delay: 3000 },
-            { text: '나도... 이름이 있었는데...', delay: 3000 },
-            { text: '이름을 말해줘... 제발...', delay: 2000 }
+            { text: '안녕', delay: 2000 },
+            { text: '반가워 이름이 뭐야?', delay: 3000 },
+            { text: '이름 한번만 말해줘', delay: 2000 }
         ];
         
         await this.sendSeoyeonMessages(introMessages);
@@ -452,9 +476,114 @@ class ForgottenChatroom {
         container.appendChild(helpButton);
     }
 
-    processInvestigationMessage(message) {
-        // 질문 처리 로직 (나중에 구현)
-        this.sendSeoyeonMessage('흥미로운 질문이네... 하지만 아직 구현되지 않았어', 1000);
+
+    async processInvestigationMessage(message) {
+        // 질문 분석
+        const questionType = this.analyzeQuestion(message);
+        
+        if (questionType) {
+            await this.handleQuestion(questionType, message);
+        } else {
+            // 허용되지 않은 질문
+            const responses = [
+                '그런 건... 말하고 싶지 않아',
+                '다른 걸 물어봐...',
+                '그건... 중요하지 않아',
+                '다른 게 궁금하지 않아?'
+            ];
+            
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            await this.sendSeoyeonMessage(randomResponse, 1500);
+        }
+    }
+
+    // 질문 분석 함수
+    analyzeQuestion(message) {
+        const lowerMessage = message.toLowerCase();
+        
+        // 각 질문 타입의 키워드 확인
+        for (const [questionType, data] of Object.entries(this.questionResponses)) {
+            const hasKeywords = data.keywords.some(keyword => 
+                lowerMessage.includes(keyword.toLowerCase())
+            );
+            
+            if (hasKeywords) {
+                return questionType;
+            }
+        }
+        
+        return null;
+    }
+
+    // 질문 처리 함수
+    async handleQuestion(questionType, message) {
+        const questionData = this.questionResponses[questionType];
+        
+        // 질문 횟수 추적
+        let questionRecord = this.gameState.questionsAsked.find(q => q.type === questionType);
+        if (!questionRecord) {
+            questionRecord = { type: questionType, count: 0 };
+            this.gameState.questionsAsked.push(questionRecord);
+        }
+        questionRecord.count++;
+        
+        // 증거 발견은 특별 응답에서 처리
+        
+        // 응답 선택
+        const responseIndex = Math.min(questionRecord.count - 1, questionData.responses.length - 1);
+        const response = questionData.responses[responseIndex];
+        
+        await this.sendSeoyeonMessage(response, 2000);
+        
+        // 특별 응답 체크
+        if (questionData.specialResponse && questionRecord.count >= questionData.specialResponse.trigger) {
+            await this.handleSpecialResponse(questionType, questionData.specialResponse);
+        }
+        
+        // 신뢰도 증가
+        this.gameState.seoyeonTrust = Math.min(100, this.gameState.seoyeonTrust + 5);
+    }
+
+    // 증거 발견 처리
+    async discoverEvidence(evidence) {
+        if (!this.gameState.evidenceFound.includes(evidence.id)) {
+            this.gameState.evidenceFound.push(evidence.id);
+            
+            setTimeout(() => {
+                this.sendSystemMessage(`💡 새로운 증거 발견: ${evidence.description}`);
+            }, 1000);
+        }
+    }
+
+    // 특별 응답 처리
+    async handleSpecialResponse(questionType, specialResponse) {
+        if (questionType === 'name' && !this.gameState.nameRevealed) {
+            // 트라우마 공개 특별 이벤트
+            for (let i = 0; i < specialResponse.messages.length; i++) {
+                const delay = i === 0 ? 2500 : 3000; // 첫 메시지는 조금 더 빨리
+                await this.sendSeoyeonMessage(specialResponse.messages[i], delay);
+            }
+            
+            this.gameState.nameRevealed = true; // 트라우마 공개 완료
+            this.gameState.mysteryLevel = Math.max(this.gameState.mysteryLevel, 1); // 의심 단계
+            
+            // 글리치 효과 먼저 실행
+            if (window.effectsManager) {
+                window.effectsManager.triggerGlitch(document.querySelector('.chat-messages'));
+            }
+            
+            // 글리치 효과 후 증거 발견 및 조사 계속
+            setTimeout(async () => {
+                const questionData = this.questionResponses[questionType];
+                await this.discoverEvidence(questionData.evidence);
+                
+                // 잠시 후 조사 단계 계속
+                setTimeout(() => {
+                    this.sendSystemMessage('💡 다른 질문으로 더 자세히 알아보세요.');
+                }, 2000);
+                
+            }, 1500); // 글리치 효과 후 1.5초 뒤
+        }
     }
 
     // ===============================
