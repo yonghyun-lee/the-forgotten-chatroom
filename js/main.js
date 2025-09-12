@@ -39,6 +39,22 @@ class ForgottenChatroom {
                     description: '익명 사용자는 이름과 관련된 트라우마가 있다'
                 },
                 keywords: ['이름']
+            },
+            'location': {
+                responses: [],
+                specialResponse: {
+                    trigger: 1, // 첫 질문 후 바로
+                    messages: [],
+                    showPhoto: true,
+                    afterPhotoMessages: [
+                        '여기... 여기에 있어'
+                    ]
+                },
+                evidence: {
+                    id: 'basement_location',
+                    description: '익명 사용자는 어둡고 음침한 지하실에 있다'
+                },
+                keywords: ['어디', '위치', '장소', '있어']
             }
         };
 
@@ -583,6 +599,335 @@ class ForgottenChatroom {
                 }, 2000);
                 
             }, 1500); // 글리치 효과 후 1.5초 뒤
+            
+        } else if (questionType === 'location' && specialResponse.showPhoto) {
+            // 위치 질문 - 사진 먼저 보여주기
+            // 바로 사진 표시
+            setTimeout(() => {
+                this.showLocationPhoto();
+                
+                // 사진 표시 후 메시지들 전송
+                if (specialResponse.afterPhotoMessages && specialResponse.afterPhotoMessages.length > 0) {
+                    setTimeout(async () => {
+                        for (let i = 0; i < specialResponse.afterPhotoMessages.length; i++) {
+                            const delay = i === 0 ? 2000 : 2500;
+                            await this.sendSeoyeonMessage(specialResponse.afterPhotoMessages[i], delay);
+                        }
+                    }, 1500); // 사진 표시 후 1.5초 뒤
+                }
+            }, 1000);
+        }
+    }
+
+    // 위치 사진 표시
+    showLocationPhoto() {
+        const messagesContainer = document.getElementById('chat-messages');
+        if (!messagesContainer) return;
+
+        const photoDiv = document.createElement('div');
+        photoDiv.className = 'message other photo-message';
+        
+        const timestamp = new Date().toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        photoDiv.innerHTML = `
+            <div class="fake-photo" onclick="game.startLocationPuzzle()">
+                <img src="assets/location.png" alt="어둠 속 지하실" class="blurred-preview">
+                <div class="photo-overlay">
+                    <div class="photo-hint">클릭해서 자세히 보기</div>
+                </div>
+            </div>
+            <div class="message-time">${timestamp}</div>
+        `;
+        
+        messagesContainer.appendChild(photoDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    // 위치 퍼즐 게임 시작
+    startLocationPuzzle() {
+        // 퍼즐 오버레이 생성
+        const puzzleOverlay = document.createElement('div');
+        puzzleOverlay.className = 'puzzle-overlay';
+        puzzleOverlay.innerHTML = `
+            <div class="puzzle-container">
+                <div class="puzzle-header">
+                    <h3>📸 사진 퍼즐</h3>
+                    <p>조각들을 드래그해서 원래 모습을 복원하세요</p>
+                    <button class="puzzle-close" onclick="game.closePuzzle()">×</button>
+                </div>
+                <div class="puzzle-board" id="puzzle-board">
+                    <!-- 퍼즐 조각들이 여기에 생성됨 -->
+                </div>
+                <div class="puzzle-footer">
+                    <div class="puzzle-progress">진행률: <span id="puzzle-progress">0%</span></div>
+                    <button class="puzzle-hint" onclick="game.showPuzzleHint()">💡 힌트</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(puzzleOverlay);
+        
+        // 퍼즐 조각 생성
+        this.createPuzzlePieces();
+        
+        // 배경음 효과
+        if (window.effectsManager) {
+            window.effectsManager.playTensionSound();
+        }
+    }
+
+    // 퍼즐 조각 생성
+    createPuzzlePieces() {
+        const puzzleBoard = document.getElementById('puzzle-board');
+        if (!puzzleBoard) return;
+
+        // 3x3 퍼즐 조각 생성
+        const pieces = [];
+        for (let i = 0; i < 9; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'puzzle-piece';
+            piece.draggable = true;
+            piece.dataset.correctPosition = i;
+            piece.dataset.currentPosition = i;
+            
+            // 추상적인 퍼즐 조각 패턴 (실제 이미지 대신)
+            const patterns = [
+                'linear-gradient(45deg, #333, #111)',
+                'linear-gradient(135deg, #444, #222)',
+                'radial-gradient(circle, #333, #111)',
+                'linear-gradient(90deg, #222, #444)',
+                'linear-gradient(180deg, #333, #222)',
+                'conic-gradient(from 45deg, #444, #111, #333)',
+                'linear-gradient(225deg, #333, #444)',
+                'radial-gradient(ellipse, #222, #333)',
+                'linear-gradient(270deg, #444, #111)'
+            ];
+            piece.style.background = patterns[i];
+            
+            // 조각에 미스터리한 기호 표시
+            const symbols = ['?', '⚫', '▲', '◆', '★', '●', '▼', '◇', '☆'];
+            piece.innerHTML = `<span class="piece-symbol">${symbols[i]}</span>`;
+            
+            // 드래그 이벤트
+            piece.addEventListener('dragstart', this.handleDragStart.bind(this));
+            piece.addEventListener('dragover', this.handleDragOver.bind(this));
+            piece.addEventListener('drop', this.handleDrop.bind(this));
+            
+            pieces.push(piece);
+        }
+        
+        // 조각들을 섞어서 배치
+        this.shufflePieces(pieces);
+        
+        pieces.forEach(piece => puzzleBoard.appendChild(piece));
+    }
+
+    // 퍼즐 조각 섞기
+    shufflePieces(pieces) {
+        for (let i = pieces.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            // 위치 데이터 교환
+            const tempPosition = pieces[i].dataset.currentPosition;
+            pieces[i].dataset.currentPosition = pieces[j].dataset.currentPosition;
+            pieces[j].dataset.currentPosition = tempPosition;
+        }
+    }
+
+    // 드래그 이벤트 핸들러들
+    handleDragStart(e) {
+        e.dataTransfer.setData('text/plain', e.target.dataset.currentPosition);
+        e.target.classList.add('dragging');
+    }
+
+    handleDragOver(e) {
+        e.preventDefault();
+    }
+
+    handleDrop(e) {
+        e.preventDefault();
+        const draggedPosition = e.dataTransfer.getData('text/plain');
+        const targetPosition = e.target.dataset.currentPosition;
+        
+        // 위치 교환
+        this.swapPieces(draggedPosition, targetPosition);
+        
+        // 드래그 스타일 제거
+        document.querySelector('.dragging')?.classList.remove('dragging');
+        
+        // 퍼즐 완성 체크
+        this.checkPuzzleCompletion();
+    }
+
+    // 퍼즐 조각 위치 교환
+    swapPieces(pos1, pos2) {
+        const pieces = document.querySelectorAll('.puzzle-piece');
+        const piece1 = Array.from(pieces).find(p => p.dataset.currentPosition === pos1);
+        const piece2 = Array.from(pieces).find(p => p.dataset.currentPosition === pos2);
+        
+        if (piece1 && piece2) {
+            const temp = piece1.dataset.currentPosition;
+            piece1.dataset.currentPosition = piece2.dataset.currentPosition;
+            piece2.dataset.currentPosition = temp;
+        }
+    }
+
+    // 퍼즐 완성 체크
+    checkPuzzleCompletion() {
+        const pieces = document.querySelectorAll('.puzzle-piece');
+        let correctPieces = 0;
+        
+        pieces.forEach(piece => {
+            if (piece.dataset.correctPosition === piece.dataset.currentPosition) {
+                piece.classList.add('correct');
+                correctPieces++;
+                
+                // 올바른 위치에 놓인 조각에 실제 이미지 표시
+                const correctPos = parseInt(piece.dataset.correctPosition);
+                piece.style.backgroundImage = 'url("assets/location.png")';
+                piece.style.backgroundSize = '300px 300px';
+                piece.style.backgroundPosition = `${-(correctPos % 3) * 100}px ${-Math.floor(correctPos / 3) * 100}px`;
+                
+                // 기호를 반투명하게
+                const symbol = piece.querySelector('.piece-symbol');
+                if (symbol) symbol.style.opacity = '0.2';
+            } else {
+                piece.classList.remove('correct');
+                // 잘못된 위치면 원래 패턴으로 되돌리기
+                const patterns = [
+                    'linear-gradient(45deg, #333, #111)',
+                    'linear-gradient(135deg, #444, #222)',
+                    'radial-gradient(circle, #333, #111)',
+                    'linear-gradient(90deg, #222, #444)',
+                    'linear-gradient(180deg, #333, #222)',
+                    'conic-gradient(from 45deg, #444, #111, #333)',
+                    'linear-gradient(225deg, #333, #444)',
+                    'radial-gradient(ellipse, #222, #333)',
+                    'linear-gradient(270deg, #444, #111)'
+                ];
+                const originalPos = parseInt(piece.dataset.correctPosition);
+                piece.style.background = patterns[originalPos];
+                piece.style.backgroundImage = '';
+                
+                // 기호 다시 보이게
+                const symbol = piece.querySelector('.piece-symbol');
+                if (symbol) symbol.style.opacity = '1';
+            }
+        });
+        
+        const progress = Math.round((correctPieces / 9) * 100);
+        const progressElement = document.getElementById('puzzle-progress');
+        if (progressElement) {
+            progressElement.textContent = `${progress}%`;
+        }
+        
+        // 퍼즐 완성 체크
+        console.log(`퍼즐 진행률: ${correctPieces}/9 (${progress}%)`);
+        if (correctPieces === 9) {
+            console.log('퍼즐 완성! completePuzzle 호출');
+            setTimeout(() => {
+                this.completePuzzle();
+            }, 500);
+        }
+    }
+
+    // 퍼즐 완성
+    async completePuzzle() {
+        console.log('completePuzzle 함수 실행됨');
+        
+        // 성공 효과
+        if (window.effectsManager) {
+            window.effectsManager.playTone(800, 0.3);
+        }
+        
+        // 완성된 사진 보여주기
+        this.showCompletedPuzzlePhoto();
+        
+        // 증거 발견
+        setTimeout(async () => {
+            const questionData = this.questionResponses['location'];
+            await this.discoverEvidence(questionData.evidence);
+        }, 3000);
+        
+        // 퍼즐 닫기
+        setTimeout(() => {
+            this.closePuzzle();
+            
+            // 성공 메시지
+            setTimeout(async () => {
+                await this.sendSeoyeonMessage('난 계속 여기에 있었어. 그가 나를 이곳으로 끌고 온 뒤로 계속...', 2000);
+                await this.sendSeoyeonMessage('이제 이번엔 너의 이름을 알려줘', 2500);
+            }, 1000);
+            
+        }, 5000); // 사진을 더 오래 보여주기 위해 시간 연장
+    }
+
+    // 완성된 퍼즐 사진 표시
+    showCompletedPuzzlePhoto() {
+        const puzzleContainer = document.querySelector('.puzzle-container');
+        if (!puzzleContainer) {
+            console.error('puzzle-container를 찾을 수 없습니다');
+            return;
+        }
+        
+        // 이미 완성된 사진이 있다면 제거
+        const existingPhoto = puzzleContainer.querySelector('.completed-puzzle-photo');
+        if (existingPhoto) {
+            existingPhoto.remove();
+        }
+        
+        // 기존 퍼즐 보드 숨기기
+        const puzzleBoard = document.getElementById('puzzle-board');
+        const puzzleFooter = document.querySelector('.puzzle-footer');
+        
+        if (puzzleBoard) puzzleBoard.style.display = 'none';
+        if (puzzleFooter) puzzleFooter.style.display = 'none';
+        
+        // 완성된 사진 컨테이너 생성
+        const completedPhotoDiv = document.createElement('div');
+        completedPhotoDiv.className = 'completed-puzzle-photo';
+        completedPhotoDiv.innerHTML = `
+            <div class="completed-photo-container">
+                <img src="assets/location.png" alt="지하실의 모습" class="completed-photo">
+                <div class="photo-reveal-text">진실이 드러났습니다...</div>
+            </div>
+        `;
+        
+        // 안전하게 추가
+        try {
+            puzzleContainer.appendChild(completedPhotoDiv);
+            console.log('완성된 사진이 성공적으로 추가되었습니다');
+        } catch (error) {
+            console.error('사진 추가 중 오류:', error);
+        }
+        
+        // 페이드인 효과
+        setTimeout(() => {
+            completedPhotoDiv.style.opacity = '1';
+        }, 100);
+    }
+
+    // 퍼즐 힌트 표시
+    showPuzzleHint() {
+        const pieces = document.querySelectorAll('.puzzle-piece');
+        pieces.forEach(piece => {
+            piece.classList.add('show-hint');
+        });
+        
+        setTimeout(() => {
+            pieces.forEach(piece => {
+                piece.classList.remove('show-hint');
+            });
+        }, 3000);
+    }
+
+    // 퍼즐 닫기
+    closePuzzle() {
+        const puzzleOverlay = document.querySelector('.puzzle-overlay');
+        if (puzzleOverlay) {
+            puzzleOverlay.remove();
         }
     }
 
