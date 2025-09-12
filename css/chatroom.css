@@ -54,7 +54,6 @@
 }
 
 .chat-messages {
-    width: 350px;
     flex: 1;
     padding: 1rem;
     overflow-y: auto;
@@ -79,10 +78,14 @@
     margin-bottom: 1rem;
     padding: 0.8rem;
     border-radius: 8px;
-    max-width: 80%;
+    max-width: 70%;
+    min-width: 100px;
     word-wrap: break-word;
+    word-break: break-word;
     position: relative;
     animation: messageSlideIn 0.3s ease-out;
+    display: block;
+    width: fit-content;
 }
 
 @keyframes messageSlideIn {
@@ -391,6 +394,158 @@
     75% { transform: translate(-1px, 0); }
 }
 
+/* 질문 툴팁 스타일 - 뱃지 형태 */
+.question-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #00ff00;
+    border-radius: 15px;
+    padding: 15px;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    z-index: 1000;
+    animation: tooltipSlideUp 0.5s ease-out;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 0, 0.3),
+        0 -5px 15px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.question-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #00ff00;
+}
+
+.question-tooltip::before {
+    content: '';
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.95);
+}
+
+@keyframes tooltipSlideUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px);
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+    }
+}
+
+.tooltip-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+    font-size: 0.9rem;
+    text-shadow: 0 0 10px #00ff00;
+}
+
+.tooltip-content {
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5px;
+}
+
+.tooltip-question {
+    padding: 6px 8px;
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.tooltip-question:hover {
+    background: rgba(0, 255, 0, 0.2);
+    border-color: rgba(0, 255, 0, 0.6);
+    transform: scale(1.02);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.4);
+}
+
+.tooltip-footer {
+    font-size: 0.75rem;
+    text-align: center;
+    opacity: 0.8;
+    font-style: italic;
+    color: #aaffaa;
+    margin-bottom: 5px;
+}
+
+.tooltip-close {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: rgba(255, 0, 0, 0.8);
+    border: 1px solid #ff0000;
+    border-radius: 50%;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.tooltip-close:hover {
+    background: rgba(255, 0, 0, 1);
+    transform: scale(1.1);
+    box-shadow: 0 0 10px #ff0000;
+}
+
+/* 도움말 버튼 스타일 */
+.help-button {
+    position: absolute;
+    top: -50%;
+    right: 0px;
+    transform: translateY(-50%);
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.help-button:hover {
+    background: rgba(0, 255, 0, 0.2);
+    border-color: rgba(0, 255, 0, 0.6);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+}
+
+.help-button:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .chat-header {
@@ -414,5 +569,27 @@
     
     #puzzle-display {
         font-size: 1.5rem;
+    }
+    
+    .question-tooltip {
+        margin-bottom: 5px;
+        padding: 10px;
+    }
+    
+    .tooltip-content {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+    
+    .tooltip-question {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .help-button {
+        right: 50px;
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
     }
 }
