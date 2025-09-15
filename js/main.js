@@ -30,13 +30,12 @@ class ForgottenChatroom {
                     trigger: 1, // 첫 질문 후 바로
                     messages: [
                         '여기서 나갈 방법은 없어',
-                        '나도 계속 찾고 있었지만',
-                        '이제는 포기했어',
+                        '나도 그랬듯이',
                     ]
                 },
                 evidence: {
                     id: 'loneliness_revealed',
-                    description: '익명 사용자는 오랫동안 혼자 있었다'
+                    description: '나갈 수 없는 곳'
                 },
                 keywords: ['나가', '나갈', '출구', '탈출']
             },
@@ -45,27 +44,26 @@ class ForgottenChatroom {
                 responses: [
                     '이름이 뭐였지? 기억이 안 나',
                     '왜 자꾸 그런 걸 묻는 거야? 그 사람처럼',
-                    '말하고 싶지 않아. 절대로.'
+                    '말하고 싶지 않아.'
                 ],
                 specialResponse: {
                     trigger: 3, // 3번째 질문 후
                     messages: [
-                        '그 사람도 처음엔 친절했어',
+                        '그 사람도 나를 다 이해해줬어',
                         '더 이상 말하고 싶지 않아'
                     ]
                 },
                 evidence: {
                     id: 'name_trauma',
-                    description: '익명 사용자는 개인 정보와 관련된 트라우마가 있다'
+                    description: '그 사람에 대해'
                 },
                 keywords: ['이름']
             },
             'location': {
                 stage: 1,
                 responses: [
-                    '여기는 어둡고 추운 곳이야',
-                    '아무도 찾을 수 없는 곳이야',
-                    '보여줄게, 여기가 어디인지'
+                    '사진 보내줄게',
+                    '이미 보내줬잖아.'
                 ],
                 specialResponse: {
                     trigger: 1, // 첫 질문 후 바로
@@ -77,7 +75,7 @@ class ForgottenChatroom {
                 },
                 evidence: {
                     id: 'basement_location',
-                    description: '익명 사용자는 어둡고 음침한 지하실에 있다'
+                    description: '지금 있는 곳'
                 },
                 keywords: ['어디', '위치', '장소']
             },
@@ -85,15 +83,22 @@ class ForgottenChatroom {
             'perpetrator': {
                 stage: 2,
                 responses: [
-                    '그 사람 말하기 싫어',
-                    '온라인에서 만났어, 처음엔 친절했는데',
-                    '나를 이해해준다고 했어, 거짓말이었지만'
+                    '이 채팅방에서 만난 사람이야.',
                 ],
+                specialResponse: {
+                    trigger: 1, // 첫 질문 후 바로
+                    type: 'chat_restore',
+                    messages: [
+                        '예전 채팅 기록이 있어.',
+                        '하지만 많이 손상됐네',
+                        '복원해볼 수 있을까?'
+                    ]
+                },
                 evidence: {
                     id: 'perpetrator_identity',
-                    description: '가해자는 온라인에서 만난 익명의 상대였다'
+                    description: '손상된 채팅 기록'
                 },
-                keywords: ['누구', '사람', '가해자', '범인']
+                keywords: ['누구', '그 사람']
             },
             'basement_reason': {
                 stage: 2,
@@ -104,7 +109,7 @@ class ForgottenChatroom {
                 ],
                 evidence: {
                     id: 'basement_purpose',
-                    description: '지하실은 피해자를 가두기 위한 장소였다'
+                    description: '지금 있는 곳'
                 },
                 keywords: ['왜', '이유', '지하실', '목적']
             }
@@ -645,15 +650,16 @@ class ForgottenChatroom {
     // 단계 진행 체크
     checkStageProgression() {
         if (this.gameState.questionStage === 1) {
-            // 1단계 필수 증거: 이름과 위치
+            // 1단계 필수 증거: 이름, 위치, 외로움 (3개 모두)
             const hasNameEvidence = this.gameState.evidenceFound.includes('name_trauma');
             const hasLocationEvidence = this.gameState.evidenceFound.includes('basement_location');
+            const hasLonelinessEvidence = this.gameState.evidenceFound.includes('loneliness_revealed');
             
-            if (hasNameEvidence && hasLocationEvidence) {
+            if (hasNameEvidence && hasLocationEvidence && hasLonelinessEvidence) {
                 // 2단계로 진행
                 setTimeout(() => {
                     this.progressToStage2();
-                }, 2000);
+                }, 1000);
             }
         }
     }
@@ -668,8 +674,6 @@ class ForgottenChatroom {
         }
         
         await this.sendSystemMessage('📍 새로운 질문들이 해금되었습니다', 1500);
-        await this.sendSeoyeonMessage('이제 더 깊은 이야기를 해볼까?', 2000);
-        await this.sendSystemMessage('💡 질문 버튼을 눌러 새로운 질문들을 확인하세요!', 1000);
     }
 
     // 특별 응답 처리
@@ -706,15 +710,14 @@ class ForgottenChatroom {
             setTimeout(async () => {
                 const questionData = this.questionResponses[questionType];
                 await this.discoverEvidence(questionData.evidence);
-                
-                // 잠시 후 조사 단계 계속
-                setTimeout(() => {
-                    this.sendSystemMessage('💡 다른 질문으로 더 자세히 알아보세요.');
-                }, 2000);
-                
             }, 1500); // 글리치 효과 후 1.5초 뒤
             
         } else if (questionType === 'location' && specialResponse.showPhoto) {
+            // 위치 질문 - 이미 증거를 찾았는지 확인
+            if (this.gameState.evidenceFound.includes('basement_location')) {
+                return;
+            }
+            
             // 위치 질문 - 사진 먼저 보여주기
             // 바로 사진 표시
             setTimeout(() => {
@@ -730,6 +733,21 @@ class ForgottenChatroom {
                     }, 1500); // 사진 표시 후 1.5초 뒤
                 }
             }, 1000);
+        } else if (questionType === 'perpetrator' && specialResponse.type === 'chat_restore') {
+            // 채팅 복원 게임 - 이미 증거를 찾았는지 확인
+            if (this.gameState.evidenceFound.includes('perpetrator_identity')) {
+                return;
+            }
+            
+            for (let i = 0; i < specialResponse.messages.length; i++) {
+                const delay = (i + 1) * 2000;
+                await this.sendSeoyeonMessage(specialResponse.messages[i], delay);
+            }
+            
+            // 채팅 복원 게임 시작
+            setTimeout(() => {
+                this.startChatRestoreGame();
+            }, 3000);
         }
     }
 
@@ -1103,6 +1121,299 @@ class ForgottenChatroom {
         if (playerNameInput) playerNameInput.value = '';
 
         this.showStartScreen();
+    }
+
+    // 채팅 복원 게임 시작
+    startChatRestoreGame() {
+        // 채팅 복원 게임 데이터
+        this.chatRestoreData = {
+            messages: [
+                {
+                    timestamp: '2023.03.15 오후 4:20',
+                    sender: '익명남',
+                    content: '오늘 ___는 어땠어?',
+                    gaps: ['학교'],
+                    filled: [false]
+                },
+                {
+                    timestamp: '2023.03.15 오후 4:25',
+                    sender: '나',
+                    content: '네, ___ 끝나고 학교에서 나왔어요',
+                    gaps: ['이제', '집'],
+                    filled: [false]
+                },
+                {
+                    timestamp: '2023.03.16 오후 4:25',
+                    sender: '익명남',
+                    content: '___야? ___ 가줄게.',
+                    gaps: ['어디', '데리러'],
+                    filled: [false, false]
+                },
+                {
+                    timestamp: '2023.03.17 오후 4:30',
+                    sender: '나',
+                    content: '네? 아니에요... 그냥 ___ 갈게요.',
+                    gaps: ['혼자'],
+                    filled: [false]
+                },
+                {
+                    timestamp: '2023.03.17 오후 4:30',
+                    sender: '익명남',
+                    content: '___되서 그래. 어딘지 아니까 ___.',
+                    gaps: ['걱정', '기다려'],
+                    filled: [false, false]
+                },
+            ],
+            wordOptions: [
+                '데리러', '어디', '학교', '걱정', '혼자', '집', '이제', '어디야', '만나', '화', '기다려', '가만히있어',
+            ],
+            usedWords: []
+        };
+
+        this.showChatRestoreOverlay();
+    }
+
+    // 채팅 복원 오버레이 표시
+    showChatRestoreOverlay() {
+        // 기존 오버레이 제거
+        const existingOverlay = document.querySelector('.chat-restore-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
+
+        // 오버레이 생성
+        const overlay = document.createElement('div');
+        overlay.className = 'chat-restore-overlay';
+        
+        const container = document.createElement('div');
+        container.className = 'chat-restore-container';
+        
+        container.innerHTML = `
+            <div class="chat-restore-header">📱 손상된 채팅 기록 복원</div>
+            <div class="chat-restore-progress">진행률: <span id="restore-progress">0</span>/${this.getTotalGaps()}개 복원됨</div>
+            <div class="chat-restore-messages" id="restore-messages"></div>
+            <div class="word-options" id="word-options"></div>
+            <button class="chat-restore-close" onclick="game.closeChatRestore()" style="display: none;">복원 완료</button>
+        `;
+        
+        overlay.appendChild(container);
+        document.body.appendChild(overlay);
+        
+        // 메시지와 단어 옵션 렌더링
+        this.renderRestoreMessages();
+        this.renderWordOptions();
+        
+        // 글리치 효과
+        if (window.effectsManager) {
+            window.effectsManager.triggerGlitch(container);
+        }
+    }
+
+    // 전체 빈칸 수 계산
+    getTotalGaps() {
+        return this.chatRestoreData.messages.reduce((total, msg) => total + msg.gaps.length, 0);
+    }
+
+    // 복원 메시지 렌더링
+    renderRestoreMessages() {
+        const messagesContainer = document.getElementById('restore-messages');
+        messagesContainer.innerHTML = '';
+        
+        this.chatRestoreData.messages.forEach((message, msgIndex) => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'corrupted-message';
+            
+            // 메시지 내용 처리
+            let content = message.content;
+            message.gaps.forEach((gap, gapIndex) => {
+                const gapId = `gap-${msgIndex}-${gapIndex}`;
+                const isFilled = message.filled[gapIndex];
+                const gapClass = isFilled ? 'message-gap filled' : 'message-gap';
+                const gapText = isFilled ? gap : '___';
+                
+                content = content.replace('___', 
+                    `<span class="${gapClass}" data-gap-id="${gapId}" onclick="game.selectGap('${gapId}')">${gapText}</span>`
+                );
+            });
+            
+            messageDiv.innerHTML = `
+                <div class="message-timestamp">[${message.timestamp}]</div>
+                <div class="message-content">${message.sender}: ${content}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+        });
+    }
+
+    // 단어 옵션 렌더링
+    renderWordOptions() {
+        const optionsContainer = document.getElementById('word-options');
+        optionsContainer.innerHTML = '';
+        
+        this.chatRestoreData.wordOptions.forEach(word => {
+            const isUsed = this.chatRestoreData.usedWords.includes(word);
+            const wordDiv = document.createElement('div');
+            wordDiv.className = isUsed ? 'word-option used' : 'word-option';
+            wordDiv.textContent = word;
+            
+            if (!isUsed) {
+                wordDiv.onclick = () => this.selectWord(word);
+            }
+            
+            optionsContainer.appendChild(wordDiv);
+        });
+    }
+
+    // 빈칸 선택
+    selectGap(gapId) {
+        // 선택된 빈칸 표시
+        document.querySelectorAll('.message-gap').forEach(gap => {
+            gap.classList.remove('selected');
+        });
+        
+        const selectedGap = document.querySelector(`[data-gap-id="${gapId}"]`);
+        if (selectedGap && !selectedGap.classList.contains('filled')) {
+            selectedGap.classList.add('selected');
+            this.selectedGapId = gapId;
+        }
+    }
+
+    // 단어 선택
+    selectWord(word) {
+        if (!this.selectedGapId) {
+            // 빈칸이 선택되지 않았으면 알림
+            return;
+        }
+        
+        // 빈칸 정보 파싱
+        const [, msgIndex, gapIndex] = this.selectedGapId.split('-').map(Number);
+        const message = this.chatRestoreData.messages[msgIndex];
+        
+        // 올바른 단어인지 확인
+        if (message.gaps[gapIndex] === word) {
+            // 정답!
+            message.filled[gapIndex] = true;
+            this.chatRestoreData.usedWords.push(word);
+            
+            // 성공 효과음
+            if (window.effectsManager) {
+                window.effectsManager.playTone(600, 0.2);
+            }
+            
+            // UI 업데이트
+            this.renderRestoreMessages();
+            this.renderWordOptions();
+            this.updateProgress();
+            
+            // 완료 체크
+            if (this.isRestoreComplete()) {
+                setTimeout(() => {
+                    this.completeChatRestore();
+                }, 1000);
+            }
+        } else {
+            // 틀렸을 때 - 처음부터 다시 시작
+            if (window.effectsManager) {
+                window.effectsManager.playTone(200, 0.5);
+            }
+            
+            // 글리치 효과
+            const container = document.querySelector('.chat-restore-container');
+            if (container && window.effectsManager) {
+                window.effectsManager.triggerGlitch(container);
+            }
+            
+            // 1초 후 초기화
+            setTimeout(() => {
+                this.resetChatRestore();
+            }, 1000);
+        }
+        
+        this.selectedGapId = null;
+    }
+
+    // 진행률 업데이트
+    updateProgress() {
+        const totalFilled = this.chatRestoreData.messages.reduce(
+            (total, msg) => total + msg.filled.filter(Boolean).length, 0
+        );
+        
+        const progressElement = document.getElementById('restore-progress');
+        if (progressElement) {
+            progressElement.textContent = totalFilled;
+        }
+    }
+
+    // 복원 완료 체크
+    isRestoreComplete() {
+        return this.chatRestoreData.messages.every(msg => 
+            msg.filled.every(Boolean)
+        );
+    }
+
+    // 채팅 복원 완료
+    async completeChatRestore() {
+        // 완료 메시지 표시
+        const closeButton = document.querySelector('.chat-restore-close');
+        if (closeButton) {
+            closeButton.style.display = 'block';
+            closeButton.textContent = '복구가 완료되었습니다';
+            closeButton.style.pointerEvents = 'none'; // 클릭 비활성화
+        }
+        
+        // 성공 효과
+        if (window.effectsManager) {
+            window.effectsManager.playTone(800, 0.5);
+        }
+        
+        // 글리치 효과
+        const container = document.querySelector('.chat-restore-container');
+        if (container && window.effectsManager) {
+            window.effectsManager.triggerGlitch(container);
+        }
+        
+        // 3초 후 자동으로 닫기
+        setTimeout(() => {
+            this.closeChatRestore();
+        }, 1000);
+    }
+
+    // 채팅 복원 초기화 (틀렸을 때)
+    resetChatRestore() {
+        // 모든 빈칸을 다시 비우기
+        this.chatRestoreData.messages.forEach(message => {
+            message.filled = message.filled.map(() => false);
+        });
+        
+        // 사용된 단어 목록 초기화
+        this.chatRestoreData.usedWords = [];
+        
+        // UI 다시 렌더링
+        this.renderRestoreMessages();
+        this.renderWordOptions();
+        this.updateProgress();
+        
+        // 선택된 빈칸 초기화
+        this.selectedGapId = null;
+    }
+
+    // 채팅 복원 게임 닫기
+    closeChatRestore() {
+        const overlay = document.querySelector('.chat-restore-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+        
+        // 증거 발견
+        setTimeout(async () => {
+            const questionData = this.questionResponses['perpetrator'];
+            await this.discoverEvidence(questionData.evidence);
+            
+            // 후속 메시지
+            setTimeout(async () => {
+                await this.sendSeoyeonMessage('그 사람과의 마지막 채팅 기록이야.', 2000);
+            }, 1000);
+        }, 500);
     }
 }
 
