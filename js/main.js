@@ -103,9 +103,7 @@ class ForgottenChatroom {
             'basement_reason': {
                 stage: 2,
                 responses: [
-                    '처음엔 만나자고 했어',
-                    '안전한 곳이라고 했어, 거짓말이었어',
-                    '여기서 나갈 수 없게 만들었어. 영원히'
+                    '아직 구현안했어 ㅎ',
                 ],
                 evidence: {
                     id: 'basement_purpose',
