@@ -716,15 +716,15 @@
 
 /* 완성된 퍼즐 사진 스타일 */
 .completed-puzzle-photo {
-    opacity: 0;
+    opacity: 1;
     transition: opacity 1s ease-in-out;
     margin: 20px 0;
+    text-align: center;
 }
 
 .completed-photo-container {
     text-align: center;
     background: #1a1a1a;
-    border: 2px solid #00ff00;
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);

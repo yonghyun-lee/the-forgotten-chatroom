@@ -1,4 +1,4 @@
-// 잊혀진 채팅방 - 서연의 이야기
+// 잊혀진 채팅방 - 익명의 이야기
 // 메인 게임 로직
 
 class ForgottenChatroom {
@@ -15,46 +15,98 @@ class ForgottenChatroom {
             evidenceFound: [],
             seoyeonTrust: 50, // 0-100
             mysteryLevel: 0, // 0: 모름, 1: 의심, 2: 확신, 3: 진실
-            nameRevealed: false // 서연이 자신의 이름을 밝혔는지
+            nameRevealed: false, // 익명 사용자가 자신의 정체를 밝혔는지
+            questionStage: 1 // 질문 단계 (1단계: 기본 정보, 2단계: 심화 질문)
         };
 
         // 질문별 응답 데이터
         this.questionResponses = {
-            'name': {
+            'escape': {
+                stage: 1,
                 responses: [
-                    '이름... 이름이 뭐였지... 기억이 안 나',
-                    '왜 자꾸 그런 걸 묻는 거야? 그 사람처럼...',
+                    '왜 그런 걸 물어봐?'
+                ],
+                specialResponse: {
+                    trigger: 1, // 첫 질문 후 바로
+                    messages: [
+                        '여기서 나갈 방법은 없어',
+                        '나도 계속 찾고 있었지만',
+                        '이제는 포기했어',
+                    ]
+                },
+                evidence: {
+                    id: 'loneliness_revealed',
+                    description: '익명 사용자는 오랫동안 혼자 있었다'
+                },
+                keywords: ['나가', '나갈', '출구', '탈출']
+            },
+            'name': {
+                stage: 1,
+                responses: [
+                    '이름이 뭐였지? 기억이 안 나',
+                    '왜 자꾸 그런 걸 묻는 거야? 그 사람처럼',
                     '말하고 싶지 않아. 절대로.'
                 ],
                 specialResponse: {
                     trigger: 3, // 3번째 질문 후
                     messages: [
-                        '그 사람도... 처음엔 친절했어...',
-                        '이름을 물어보고... 집까지 찾아왔어...',
-                        '더 이상... 말하고 싶지 않아'
+                        '그 사람도 처음엔 친절했어',
+                        '더 이상 말하고 싶지 않아'
                     ]
                 },
                 evidence: {
                     id: 'name_trauma',
-                    description: '익명 사용자는 이름과 관련된 트라우마가 있다'
+                    description: '익명 사용자는 개인 정보와 관련된 트라우마가 있다'
                 },
                 keywords: ['이름']
             },
             'location': {
-                responses: [],
+                stage: 1,
+                responses: [
+                    '여기는 어둡고 추운 곳이야',
+                    '아무도 찾을 수 없는 곳이야',
+                    '보여줄게, 여기가 어디인지'
+                ],
                 specialResponse: {
                     trigger: 1, // 첫 질문 후 바로
                     messages: [],
                     showPhoto: true,
                     afterPhotoMessages: [
-                        '여기... 여기에 있어'
+                        '여기에 있어'
                     ]
                 },
                 evidence: {
                     id: 'basement_location',
                     description: '익명 사용자는 어둡고 음침한 지하실에 있다'
                 },
-                keywords: ['어디', '위치', '장소', '있어']
+                keywords: ['어디', '위치', '장소']
+            },
+            // 2단계 질문들
+            'perpetrator': {
+                stage: 2,
+                responses: [
+                    '그 사람 말하기 싫어',
+                    '온라인에서 만났어, 처음엔 친절했는데',
+                    '나를 이해해준다고 했어, 거짓말이었지만'
+                ],
+                evidence: {
+                    id: 'perpetrator_identity',
+                    description: '가해자는 온라인에서 만난 익명의 상대였다'
+                },
+                keywords: ['누구', '사람', '가해자', '범인']
+            },
+            'basement_reason': {
+                stage: 2,
+                responses: [
+                    '처음엔 만나자고 했어',
+                    '안전한 곳이라고 했어, 거짓말이었어',
+                    '여기서 나갈 수 없게 만들었어. 영원히'
+                ],
+                evidence: {
+                    id: 'basement_purpose',
+                    description: '지하실은 피해자를 가두기 위한 장소였다'
+                },
+                keywords: ['왜', '이유', '지하실', '목적']
             }
         };
 
@@ -205,7 +257,7 @@ class ForgottenChatroom {
         });
     }
 
-    // 익명 사용자(서연) 메시지 보내기
+    // 익명 사용자 메시지 보내기
     sendSeoyeonMessage(text, delay = 1000) {
         return new Promise((resolve) => {
             // 타이핑 인디케이터 표시
@@ -295,7 +347,7 @@ class ForgottenChatroom {
     async startTutorial() {
         this.sendSystemMessage('익명 사용자가 채팅방에 입장했습니다.');
         
-        // 서연의 첫 메시지들 (이름을 모르는 상태)
+        // 익명 사용자의 첫 메시지들 (이름을 모르는 상태)
         const introMessages = [
             { text: '안녕', delay: 2000 },
             { text: '반가워 이름이 뭐야?', delay: 3000 },
@@ -337,8 +389,8 @@ class ForgottenChatroom {
     }
 
     async tutorialFailed() {
-        await this.sendSeoyeonMessage('시간이 다 됐어...', 1000);
-        await this.sendSeoyeonMessage('너도... 나처럼 될 거야...', 2000);
+        await this.sendSeoyeonMessage('왜 답을 안 해?', 1000);
+        await this.sendSeoyeonMessage('이제 늦었어', 2000);
         
         this.showBadEnding('soul_consumed');
     }
@@ -368,8 +420,8 @@ class ForgottenChatroom {
                 this.tutorialTimer = null;
             }
             
-            await this.sendSeoyeonMessage('...', 1500);
-            await this.sendSeoyeonMessage('이름을 말하지 않으면 어차피 넌 여기서 못 나가', 2000);
+            await this.sendSeoyeonMessage('괜찮아, 이해해', 1500);
+            await this.sendSeoyeonMessage('이제 다른 이야기를 해보자', 2000);
             
             this.startInvestigation();
             return;
@@ -377,29 +429,27 @@ class ForgottenChatroom {
 
         // 이름을 말하는 경우
         if (this.isNameReveal(message)) {
-            // 서연이 플레이어 이름을 알게 됨
-            await this.sendSeoyeonMessage(`${this.playerName}... 고마워...`, 1500);
-            await this.sendSeoyeonMessage('이제 너도 나와 함께...', 2000);
+            // 익명 사용자가 플레이어 이름을 알게 됨
+            await this.sendSeoyeonMessage(`${this.playerName}, 고마워`, 1500);
+            await this.sendSeoyeonMessage('이제 너도 나와 함께할 거야', 2000);
             this.showBadEnding('name_revealed');
             return;
         }
 
         // 일반적인 응답
-        await this.sendSeoyeonMessage('이름... 이름을 말해줘...', 1500);
+        await this.sendSeoyeonMessage('이름을 말해줘', 1500);
     }
 
     isNameReveal(message) {
-        // 플레이어가 자신의 이름이나 "서연"을 말하는 경우
-        return message.includes(this.playerName) || 
-               message.includes('서연') || 
-               message.includes('seoyeon');
+        // 플레이어가 자신의 이름을 말하는 경우
+        return message.includes(this.playerName);
     }
 
     async startInvestigation() {
         this.currentStage = 'investigation';
         this.gameState.tutorialComplete = true;
         
-        await this.sendSeoyeonMessage('궁금한 게 있으면... 물어봐도 돼', 2000);
+        await this.sendSeoyeonMessage('궁금한 게 있으면 물어봐도 돼', 2000);
         
         // 질문 툴팁 표시
         setTimeout(() => {
@@ -418,17 +468,27 @@ class ForgottenChatroom {
         const tooltip = document.createElement('div');
         tooltip.className = 'question-tooltip';
         
-        const allowedQuestions = [
-            '너는 이름이 뭔데?',
-            '이 채팅방은 대체 뭐야?',
-            '너 지금 어디에 있어?',
-            '너 몇 살이야?',
-            '너에게 무슨 일이 일어났어?',
-            '왜 혼자였어?'
-        ];
+        // 현재 단계에 따른 질문 목록
+        let allowedQuestions = [];
+        let stageTitle = '';
+        
+        if (this.gameState.questionStage === 1) {
+            stageTitle = '1단계: 기본 정보';
+            allowedQuestions = [
+                '여기서 어떻게 나가?',
+                '너는 이름이 뭔데?',
+                '너 지금 어디에 있어?'
+            ];
+        } else if (this.gameState.questionStage === 2) {
+            stageTitle = '2단계: 심화 질문';
+            allowedQuestions = [
+                '그 사람이 누구야?',
+                '지하실에는 왜 있어?'
+            ];
+        }
         
         tooltip.innerHTML = `
-            <div class="tooltip-header">💡 사용 가능한 질문들</div>
+            <div class="tooltip-header">💡 ${stageTitle}</div>
             <div class="tooltip-content">
                 ${allowedQuestions.map(question => 
                     `<div class="tooltip-question" onclick="game.selectQuestion('${question}')">${question}</div>`
@@ -502,9 +562,9 @@ class ForgottenChatroom {
         } else {
             // 허용되지 않은 질문
             const responses = [
-                '그런 건... 말하고 싶지 않아',
-                '다른 걸 물어봐...',
-                '그건... 중요하지 않아',
+                '그런 건 말하고 싶지 않아',
+                '다른 걸 물어봐',
+                '그건 중요하지 않아',
                 '다른 게 궁금하지 않아?'
             ];
             
@@ -519,6 +579,14 @@ class ForgottenChatroom {
         
         // 각 질문 타입의 키워드 확인
         for (const [questionType, data] of Object.entries(this.questionResponses)) {
+            // 질문 단계 확인 (stage가 없으면 1단계로 간주)
+            const questionStage = data.stage || 1;
+            
+            // 현재 단계와 맞지 않으면 건너뛰기
+            if (questionStage !== this.gameState.questionStage) {
+                continue;
+            }
+            
             const hasKeywords = data.keywords.some(keyword => 
                 lowerMessage.includes(keyword.toLowerCase())
             );
@@ -567,13 +635,59 @@ class ForgottenChatroom {
             
             setTimeout(() => {
                 this.sendSystemMessage(`💡 새로운 증거 발견: ${evidence.description}`);
+                
+                // 1단계 완료 체크
+                this.checkStageProgression();
             }, 1000);
         }
+    }
+    
+    // 단계 진행 체크
+    checkStageProgression() {
+        if (this.gameState.questionStage === 1) {
+            // 1단계 필수 증거: 이름과 위치
+            const hasNameEvidence = this.gameState.evidenceFound.includes('name_trauma');
+            const hasLocationEvidence = this.gameState.evidenceFound.includes('basement_location');
+            
+            if (hasNameEvidence && hasLocationEvidence) {
+                // 2단계로 진행
+                setTimeout(() => {
+                    this.progressToStage2();
+                }, 2000);
+            }
+        }
+    }
+    
+    // 2단계로 진행
+    async progressToStage2() {
+        this.gameState.questionStage = 2;
+        
+        // 글리치 효과
+        if (window.effectsManager) {
+            window.effectsManager.triggerGlitch(document.body);
+        }
+        
+        await this.sendSystemMessage('📍 새로운 질문들이 해금되었습니다', 1500);
+        await this.sendSeoyeonMessage('이제 더 깊은 이야기를 해볼까?', 2000);
+        await this.sendSystemMessage('💡 질문 버튼을 눌러 새로운 질문들을 확인하세요!', 1000);
     }
 
     // 특별 응답 처리
     async handleSpecialResponse(questionType, specialResponse) {
-        if (questionType === 'name' && !this.gameState.nameRevealed) {
+        if (questionType === 'escape') {
+            // 탈출 질문 - 연속 메시지
+            for (let i = 0; i < specialResponse.messages.length; i++) {
+                const delay = i === 0 ? 1500 : 2000;
+                await this.sendSeoyeonMessage(specialResponse.messages[i], delay);
+            }
+            
+            // 증거 발견
+            setTimeout(async () => {
+                const questionData = this.questionResponses[questionType];
+                await this.discoverEvidence(questionData.evidence);
+            }, 1000);
+            
+        } else if (questionType === 'name' && !this.gameState.nameRevealed) {
             // 트라우마 공개 특별 이벤트
             for (let i = 0; i < specialResponse.messages.length; i++) {
                 const delay = i === 0 ? 2500 : 3000; // 첫 메시지는 조금 더 빨리
@@ -824,9 +938,7 @@ class ForgottenChatroom {
         }
         
         // 퍼즐 완성 체크
-        console.log(`퍼즐 진행률: ${correctPieces}/9 (${progress}%)`);
         if (correctPieces === 9) {
-            console.log('퍼즐 완성! completePuzzle 호출');
             setTimeout(() => {
                 this.completePuzzle();
             }, 500);
@@ -835,7 +947,6 @@ class ForgottenChatroom {
 
     // 퍼즐 완성
     async completePuzzle() {
-        console.log('completePuzzle 함수 실행됨');
         
         // 성공 효과
         if (window.effectsManager) {
@@ -857,7 +968,7 @@ class ForgottenChatroom {
             
             // 성공 메시지
             setTimeout(async () => {
-                await this.sendSeoyeonMessage('난 계속 여기에 있었어. 그가 나를 이곳으로 끌고 온 뒤로 계속...', 2000);
+                await this.sendSeoyeonMessage('난 계속 여기에 있었어. 그가 나를 이곳으로 끌고 온 뒤로 계속', 2000);
                 await this.sendSeoyeonMessage('이제 이번엔 너의 이름을 알려줘', 2500);
             }, 1000);
             
@@ -866,23 +977,15 @@ class ForgottenChatroom {
 
     // 완성된 퍼즐 사진 표시
     showCompletedPuzzlePhoto() {
-        const puzzleContainer = document.querySelector('.puzzle-container');
-        if (!puzzleContainer) {
-            console.error('puzzle-container를 찾을 수 없습니다');
-            return;
-        }
-        
-        // 이미 완성된 사진이 있다면 제거
-        const existingPhoto = puzzleContainer.querySelector('.completed-puzzle-photo');
-        if (existingPhoto) {
-            existingPhoto.remove();
-        }
-        
-        // 기존 퍼즐 보드 숨기기
         const puzzleBoard = document.getElementById('puzzle-board');
-        const puzzleFooter = document.querySelector('.puzzle-footer');
+        const puzzleContainer = puzzleBoard ? puzzleBoard.closest('.puzzle-container') : null;
         
+        if (!puzzleContainer) return;
+        
+        // 기존 퍼즐 요소들 숨기기
         if (puzzleBoard) puzzleBoard.style.display = 'none';
+        
+        const puzzleFooter = puzzleContainer.querySelector('.puzzle-footer');
         if (puzzleFooter) puzzleFooter.style.display = 'none';
         
         // 완성된 사진 컨테이너 생성
@@ -891,22 +994,10 @@ class ForgottenChatroom {
         completedPhotoDiv.innerHTML = `
             <div class="completed-photo-container">
                 <img src="assets/location.png" alt="지하실의 모습" class="completed-photo">
-                <div class="photo-reveal-text">진실이 드러났습니다...</div>
             </div>
         `;
         
-        // 안전하게 추가
-        try {
-            puzzleContainer.appendChild(completedPhotoDiv);
-            console.log('완성된 사진이 성공적으로 추가되었습니다');
-        } catch (error) {
-            console.error('사진 추가 중 오류:', error);
-        }
-        
-        // 페이드인 효과
-        setTimeout(() => {
-            completedPhotoDiv.style.opacity = '1';
-        }, 100);
+        puzzleContainer.appendChild(completedPhotoDiv);
     }
 
     // 퍼즐 힌트 표시
@@ -943,11 +1034,11 @@ class ForgottenChatroom {
         switch (type) {
             case 'soul_consumed':
                 title = '영혼 잠식';
-                description = '시간 안에 올바른 선택을 하지 못했습니다. 당신의 영혼이 서연에게 잠식되었습니다.';
+                description = '시간 안에 올바른 선택을 하지 못했습니다. 당신의 영혼이 익명의 존재에게 잠식되었습니다.';
                 break;
             case 'name_revealed':
                 title = '영혼 잠식';
-                description = '이름을 말하는 순간, 서연과 영원히 함께하게 되었습니다.';
+                description = '이름을 말하는 순간, 익명의 존재와 영원히 함께하게 되었습니다.';
                 break;
         }
         
@@ -988,7 +1079,8 @@ class ForgottenChatroom {
             questionsAsked: [],
             evidenceFound: [],
             seoyeonTrust: 50,
-            mysteryLevel: 0
+            mysteryLevel: 0,
+            questionStage: 1 // 질문 단계 (1단계: 기본 정보, 2단계: 심화 질문)
         };
 
         // 타이머 정리
